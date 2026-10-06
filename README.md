@@ -32,8 +32,9 @@ with a 3B model on one A100 80GB** (floor: 18 × 3 s = 54 s of serial grading).
 | v1.6 policy (coverage barrier + slot pool), five seeds | 5/5 reached 18; median 77.5 s, range 63.4-101.1 s |
 | AIME 2026, unchanged v1 policy, one run | 88.7 s, one wrong check |
 
-These come from the original GPU experiments (the raw attempt archive is not
-included here); [`docs/report/`](docs/report/) holds the original write-up.
+These come from the original GPU experiments. The raw evidence (attempt traces,
+token records, grader audits and analysis outputs) lives in the original repository,
+[aime-bench](https://github.com/devYaoYH/aime-bench); [`docs/report/`](docs/report/) holds the write-up.
 Offline tests establish the plumbing, not a new GPU timing: reproduce on your
 hardware before quoting numbers.
 

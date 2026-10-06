@@ -85,8 +85,8 @@ smaller tail than the matching v1 batch (worst 128.744s; sample SD 15.0s vs
 the continuation seed bands changed together, the tail reduction cannot be
 attributed to the initial barrier alone. Single BF16 and five-seed AWQ comparisons
 exist for other deployments; one seed does not establish a quantization speedup.
-These numbers come from the original experiment commits; the raw attempt archive
-is not part of this repository.
+These numbers come from the original experiment commits; the raw attempt archive is in
+[aime-bench](https://github.com/devYaoYH/aime-bench), not in this repository.
 
 ## Difference from other policies
 
