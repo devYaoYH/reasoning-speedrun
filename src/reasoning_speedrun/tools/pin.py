@@ -1,4 +1,4 @@
-"""Record reviewed source snapshots for the canonical core and the v1.6 policy.
+"""Record reviewed source snapshots for the canonical core and each policy extension.
 
 Run ``python -m reasoning_speedrun.tools.pin --reason "..." --write`` after a
 reviewed behavior change. Without ``--write`` the manifests are printed.
@@ -11,7 +11,7 @@ import json
 from reasoning_speedrun.lib.common import PACKAGE, atomic_json
 
 SKIP = {"__pycache__", ".venv", "venv", ".cache"}
-V1_6_MANIFEST = PACKAGE / "extensions/v1_6/manifest.json"
+EXTENSIONS = ("v1_6", "naive")
 
 
 def digest(path):
@@ -41,42 +41,51 @@ def build_core(reason):
     }
 
 
-def build_v1_6(reason, core_manifest_bytes):
-    previous = json.loads(V1_6_MANIFEST.read_text())
+def extension_files(name):
     files = [
         p
-        for p in (PACKAGE / "extensions/v1_6").rglob("*")
+        for p in (PACKAGE / "extensions" / name).rglob("*")
         if p.suffix in (".py", ".json")
         and p.name != "manifest.json"
         and not SKIP.intersection(p.parts)
     ]
-    files += [
-        PACKAGE / "lib/policy_runtime.py",
-        PACKAGE / "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml",
-    ]
+    if name == "v1_6":
+        files += [
+            PACKAGE / "lib/policy_runtime.py",
+            PACKAGE / "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml",
+        ]
+    else:
+        files.append(PACKAGE / "lib/policy_runtime.py")
+    return files
+
+
+def build_extension(name, reason, core_manifest_bytes):
+    path = PACKAGE / "extensions" / name / "manifest.json"
+    previous = json.loads(path.read_text())
     return {
         **{k: v for k, v in previous.items() if k not in ("sha256", "change_reason")},
         "canonical_manifest_sha256": hashlib.sha256(core_manifest_bytes).hexdigest(),
         "change_reason": reason,
-        "sha256": hashes(files),
+        "sha256": hashes(extension_files(name)),
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reason", required=True, help="Describe the reviewed change")
-    parser.add_argument("--write", action="store_true", help="Write both manifests")
+    parser.add_argument("--write", action="store_true", help="Write all manifests")
     args = parser.parse_args()
     if not args.reason.strip():
         parser.error("A nonempty change reason is required")
     core = build_core(args.reason)
     core_bytes = (json.dumps(core, ensure_ascii=False, indent=2) + "\n").encode()
-    v16 = build_v1_6(args.reason, core_bytes)
+    built = {name: build_extension(name, args.reason, core_bytes) for name in EXTENSIONS}
     if args.write:
         atomic_json(PACKAGE / "manifest.json", core)
-        atomic_json(V1_6_MANIFEST, v16)
+        for name, value in built.items():
+            atomic_json(PACKAGE / "extensions" / name / "manifest.json", value)
     else:
-        print(json.dumps({"core": core, "v1_6": v16}, indent=2))
+        print(json.dumps({"core": core, **built}, indent=2))
 
 
 if __name__ == "__main__":

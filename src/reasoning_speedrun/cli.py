@@ -76,7 +76,7 @@ def main(argv=None):
         return launch_extension(selected.version, remaining)
     if "--help" in remaining or "-h" in remaining:
         print(
-            "Policy selection: --version {v1,v1.6}\n"
+            "Policy selection: --version {v1,v1.6,naive}\n"
             "Configuration: --preset FILE --system-prompt-file FILE\n"
             "Explicit flags override preset defaults. Help launches no services."
         )

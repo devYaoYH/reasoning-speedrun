@@ -2,11 +2,11 @@
   "schema_version": 1,
   "core_id": "runner_core_v1",
   "policy": "V1 bounded round scheduling, integer candidate extraction, exact-ID continuations and four-request ceiling. Includes a custom integer-dataset adapter.",
-  "change_reason": "Release packaging: src layout, package-relative manifests, report-only drift checks",
+  "change_reason": "Add naive baseline policy, simulator hook and docs",
   "sha256": {
     "__init__.py": "48cfb506e9e1da46a50f45da80f00bf9b56f5ad2feaeb45c272fbab1a209f3f9",
     "__main__.py": "61e77278211cb3c5d6deebc6124c158728f347d5d37ecb0364c572467c9f9445",
-    "cli.py": "657f551fe6e7b6cc71c601abca271882062f83d885572bd5d13ca33a5a9a3b33",
+    "cli.py": "0fc6c2382e1e409f7b4bcb295d2dcd94fd29f2090ca78cef71abfdcd9f8dd49d",
     "config.py": "d949a8dd221ae227e2914a01368a424cfefb6efd46dabf283d771e79ffb687d0",
     "fetch_data.py": "c19d76b92431d82bc2d7262af2385b3c35dca9f7b0dba86feb3d629eb5167aca",
     "grader/example_usage.py": "7f4592ab55da89df290162d663d9ce7f6ac4fcbd7cbcb54e7d7c65b29f996ed7",
@@ -22,7 +22,7 @@
     "lib/common.py": "6c2906c992e677a41bcbd0a3dd14227f377623ad125740286ac0299a33a372b8",
     "lib/continuations.py": "64501b13dda804c5037ce4531862fc285b351ded94f62e67cc1ce264e4e248e6",
     "lib/datasets.py": "1e0824928035a2e4c088902368f0ba3d7ad32b2975d5ffefc8ba9060b6441205",
-    "lib/entrypoints.py": "402c69627d80cb2021cd05632632f899bae37e60f41b6b877e48843c41715b09",
+    "lib/entrypoints.py": "5db7df438513ed21ca08776c5afe773c5885f664170d8b956a0c404b8a599b6a",
     "lib/extraction.py": "4e611524d163ad2e9779280a249ba5fd03ef62b58286de2df02a7c022a95e909",
     "lib/generation.py": "7083afc3675388c0f0898f0a9937391d79762307d127881dd9470e4703a100a5",
     "lib/gpu.py": "dbf05c870df8ee2a0ca381de24e3ca4ad6e5a1591a622dacd2f421f2709ad816",
@@ -39,8 +39,9 @@
     "lib/transport.py": "82fb2bf4678ee026aca9935ceb125ac204aa11dde84886299fc0e55aed9c7836",
     "lib/warmup.py": "452d928f0448926938af956507fbb1bc41a462f8879e0a84ee02d0f2f92a8d61",
     "metadata.schema.json": "4cf098b57762bf05875f137ff4b081fc6b04fb413c48bc86133db71e9a88e8d2",
-    "question.py": "30d0f7db9ac0d44b20c7ced360bbb312f20e4cc12bc1f1ecee4c675f507b0ae6",
+    "question.py": "745e4054d4e77c541d550a9ffdb23382c4e082f9085d1d7c3a446bc3c1a98f63",
     "run.py": "dfa81f7598ae6a5692c8adaa68bc5395ddd3290f32f7233fee825f215448659c",
-    "scheduler.py": "a3660883e253f1a234a5efdbfcba9a3a60c7690883abe6a6c6e038a6b58ea9ef"
+    "scheduler.py": "a3660883e253f1a234a5efdbfcba9a3a60c7690883abe6a6c6e038a6b58ea9ef",
+    "simulate.py": "045fa5f9ba3bf5491501e1afdb0bdcbd31fd6a2ba3df2ecb25ad2136faa4cfc6"
   }
 }

@@ -3,7 +3,10 @@
 from importlib import import_module
 
 CANONICAL = "v1"
-EXTENSIONS = {"v1.6": "reasoning_speedrun.extensions.v1_6.cli"}
+EXTENSIONS = {
+    "v1.6": "reasoning_speedrun.extensions.v1_6.cli",
+    "naive": "reasoning_speedrun.extensions.naive.cli",
+}
 
 
 def launch_extension(version, argv=None):

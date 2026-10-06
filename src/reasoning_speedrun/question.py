@@ -10,6 +10,8 @@ from reasoning_speedrun.lib.generation import RolloutGenerator
 
 
 class QuestionRun:
+    # Policies swap the per-stream generator (e.g. to change answer extraction).
+    generator = RolloutGenerator
 
     def __init__(
         self,
@@ -311,7 +313,7 @@ class QuestionRun:
 
     async def run(self):
         self.streams = [
-            asyncio.create_task(RolloutGenerator(self, self.rollout_offset + r).run())
+            asyncio.create_task(self.generator(self, self.rollout_offset + r).run())
             for r in range(1, self.args.rollouts + 1)
         ]
         self.producer = asyncio.create_task(self.drained())

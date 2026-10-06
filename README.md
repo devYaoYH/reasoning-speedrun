@@ -1,13 +1,24 @@
 # reasoning-speedrun
 
-A harness for measuring **how fast a locally served reasoning model can solve N
-math problems, as confirmed by a rate-limited grader.** It drives a vLLM server
-with many concurrent streams, extracts candidate answers while the model is still
-thinking, checks them against a toll-gated grader (3 s per check by default, one
-global queue), continues capped generations from their exact token IDs, and
-records everything needed to audit the clock: per-request timestamps, token IDs,
-verdict times and optional GPU/engine telemetry. A browser viewer and offline
-plots work over the saved attempts.
+Scheduling policies for streams of reasoning-model requests: **bounded
+parallelism, streaming chunks, and early exit via optimistic intermediate answer
+extraction**, measured on a real GPU and replayed offline.
+
+A reasoning model thinks for thousands of tokens, but its answer often appears
+long before it stops. Here a policy decides how many streams run at once, reads
+candidate answers out of the stream while the model is still reasoning, sends
+each one to a verifier that is slow and shared (a toll-gated grader: 3 s per
+check, one global queue), and cancels everything for a question the moment a
+check passes. The grader's toll is the cost of being wrong or early: optimism
+only pays if the checks it triggers are cheap enough relative to the generation
+they save, and concurrency only pays until the GPU is contended.
+
+| Piece | What it answers |
+| --- | --- |
+| Real runs (`reasoning-speedrun`) | How long does a policy actually take to reach N verified answers on your GPU? Per-request timestamps, token IDs, verdict times, GPU/engine telemetry |
+| Policies (`--version`) | v1 (round barriers), v1.6 (coverage barrier + slot pool), **naive** (complete fan-out, final answers only) |
+| Deterministic replay (`speedrun-simulate`) | Given a saved run, what would other slot counts, verifier costs or extraction modes have done, without a GPU? |
+| Viewer (`speedrun-viewer`) | Trajectories, verdict timelines, GPU samples, matched-control comparisons |
 
 The reference task is **time to 18 distinct grader-confirmed answers on AIME 2025
 with a 3B model on one A100 80GB** (floor: 18 × 3 s = 54 s of serial grading).
@@ -76,13 +87,56 @@ reasoning-speedrun \
 answer formats need a new policy extension; see the
 [usage guide](docs/usage.md#datasets).
 
+## Policies
+
+| Policy | Parallelism | Answer extraction |
+| --- | --- | --- |
+| `v1` (default) | 30 streams (one per question), round barriers, exact-ID continuations | Early: closed boxes, answer lines and clauses in reasoning and content |
+| `v1.6` | Coverage barrier, then a question-count slot pool; four fresh samples per question | Early, as v1 |
+| `naive` | Complete fan-out: every sample of every question at once | Final only: last box of a naturally ended response |
+
+Select with `--version`. New policies plug into one shared pipeline; the
+[policy contract](src/reasoning_speedrun/extensions/README.md#the-policy-contract)
+lists what to supply. No GPU measurement of `naive` is recorded here yet.
+
+## Replay without a GPU
+
+```bash
+speedrun-simulate examples/attempts/20261004T220514.018752Z --compare
+speedrun-simulate ATTEMPT --slots 10 --cost 1 --extraction early
+```
+
+The replay takes a saved attempt's trajectories (start, duration, candidates and
+when they appeared) and the grader verdicts it recorded, and re-runs admission to
+a slot limit, FIFO verification at any cost, deduplication, early exit and
+final-only extraction. On the bundled example it reproduces the recorded 62.118 s
+to 62.114 s, then answers counterfactuals:
+
+```
+scenario                                            to target  checks  wrong  peak   mean  stream-s
+recorded policy (reproduction check)                  62.114s      18      0    30   21.5    1333.2
+early extraction, all recorded trajectories at once   61.585s      18      0    30   21.1    1298.5
+final-only, censored streams dropped                 unmet(2)       2      0    30   21.8    1298.5
+final-only, censored streams at cancel time           64.597s      18      0    30   20.1    1298.5
+```
+
+Read these as bounds, not predictions. Streams that were cancelled when their
+question was solved never reached their natural end, so a final-only policy's
+answers from them are unknowable: "dropped" is the pessimistic bound and "at
+cancel time" a lower bound on the true final-only time. Durations are replayed as
+recorded: **decode slowing as concurrency rises is not modelled**, so peak/mean
+concurrent streams and stream-seconds are an occupancy proxy for GPU contention,
+not a throughput prediction. Candidates never sent to the grader have no verdict
+and are skipped, never guessed. See the [usage guide](docs/usage.md#replay-and-gpu-contention).
+
 ## What is in the box
 
 | Piece | Where | What it gives you |
 | --- | --- | --- |
-| Runner | `reasoning_speedrun/` | Bounded round scheduling, streaming candidate extraction, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
-| Policies | `extensions/v1_6/` | Versioned alternatives selected with `--version`; template for new ones |
+| Runner | `reasoning_speedrun/` | Streaming candidate extraction, bounded round scheduling, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
+| Policies | `extensions/` | `v1.6` and `naive`; the template for new ones |
 | Grader | `reasoning_speedrun/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
+| Replay | `reasoning_speedrun.simulate` | Deterministic counterfactual replay of saved attempts |
 | Viewer | `speedrun-viewer` | Per-attempt trajectories, verdicts and GPU samples; aggregate time-to-target with matched-control comparison |
 | Analysis | `reasoning_speedrun.analysis` | Offline plots from saved telemetry |
 | Data tools | `fetch_data`, `lib.datasets` | Hash-verified, revision-pinned benchmark download; custom-dataset adapter |

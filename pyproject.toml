@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "reasoning-speedrun"
 version = "0.1.0"
-description = "Time-to-N-correct harness for locally served reasoning models: exact-token continuations, a toll-gated grader, traces and a browser viewer."
+description = "Scheduling policies for LLM request streams with bounded parallelism and optimistic early exit: a real-GPU harness, a toll-gated grader, deterministic replay and a viewer."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -39,6 +39,7 @@ dev = ["pytest>=8"]
 reasoning-speedrun = "reasoning_speedrun.cli:main"
 speedrun-viewer = "reasoning_speedrun.viewer.server:main"
 speedrun-fetch-data = "reasoning_speedrun.fetch_data:main"
+speedrun-simulate = "reasoning_speedrun.simulate:main"
 
 [project.urls]
 Repository = "https://github.com/devYaoYH/reasoning-speedrun"
@@ -61,6 +62,7 @@ reasoning_speedrun = [
     "prompts/*",
     "profiles/models/*/*/*.yaml",
     "extensions/v1_6/*.json",
+    "extensions/naive/*.json",
     "viewer/*.css",
     "viewer/attempts_ui/*",
     "viewer/results_ui/*",
