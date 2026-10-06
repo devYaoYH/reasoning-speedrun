@@ -252,7 +252,7 @@ of valid ones. A run is also real wall-clock time: a 60-second simulated solve t
 | How many requests the server runs at once | `--sim max_num_seqs=32` |
 | How accurate the model is | `--sim behavior.p_correct=0.5` |
 | How long it reasons | `--sim behavior.reasoning_median_tokens=9000` |
-| Make every question equally hard | `--sim behavior.difficulty=uniform` |
+| Make every question equally hard (same answer timing) | `--sim behavior.difficulty=uniform` |
 
 Everything else (listed below, and in
 [`examples/sim_default.yaml`](../src/qed/examples/sim_default.yaml)) has a default you
@@ -286,31 +286,32 @@ are wrong) without running anything.
 
 ### Question difficulty
 
-Real questions are not equally hard: a hard one is long and wrong across *all* its
-samples, which makes extra samples worth much less. So by default the simulated model
-is two-level: each question gets a **tier** once, then its samples are drawn from the
-tier's parameters (`behavior.difficulty`):
+Questions differ in *when* the model first gets an answer, not in how often that
+answer is right. `behavior.difficulty` controls the first and leaves `behavior.p_correct`
+alone: every question, in every tier, is answered correctly with the same probability.
+Each question gets a **tier** once, and its samples draw their reasoning length and
+first-answer position from the tier:
 
 - `mixed` (default): easy / medium / hard in the ratio 7:5:3, i.e. 14 / 10 / 6 of 30
-  questions. The preset is *relative to the flat knobs*: `behavior.p_correct` stays
-  the **overall** accuracy and `behavior.reasoning_median_tokens` the overall length,
-  and the tiers only add spread around them (calibrated so the weighted means match).
-  At the defaults, accuracy is 0.92 / 0.60 / 0.10 and median reasoning 2.6K / 6.5K / 13K
-  tokens. Hard questions are mostly unsolvable, yet about 86% of questions still have
-  a correct sample among four, so a target like 18 of 30 stays reachable. The chance
-  all four samples of a question are wrong is 0.14, against 0.015 if samples were
-  independent. Raise `p_correct` and the tiers all get easier together.
-- `uniform`: one tier equal to the flat knobs: every question alike, samples independent.
+  questions. At the defaults the typical first answer appears around token 1.4K / 4.6K /
+  10.4K: easy questions are short and answer early in them, hard ones are long and
+  answer late. The preset is relative to the flat knobs: `reasoning_median_tokens` stays
+  the overall typical length (tier lengths are scaled so the weighted mean matches) and
+  `answer_at` is the medium window, shifted 0.15 earlier for easy and later for hard.
+  This is what makes early extraction pay off unevenly: it saves a lot on long hard
+  trajectories and little on short easy ones.
+- `uniform`: one tier equal to the flat knobs: every question alike.
 - A list, for full control. A tier needs a `weight` and may override any of
   `p_correct`, `reasoning_median_tokens`, `reasoning_sigma`, `answer_at`,
   `p_wrong_first` with absolute values; whatever it leaves out comes from the flat
-  knobs, and weights are normalized:
+  knobs, and weights are normalized. Overriding `p_correct` in a tier is allowed if you
+  do want accuracy to vary with difficulty; the presets never do:
 
   ```yaml
   behavior:
     difficulty:
-      - {name: easy, weight: 3, p_correct: 0.9, reasoning_median_tokens: 2500}
-      - {name: hard, weight: 1, p_correct: 0.2, reasoning_median_tokens: 12000}
+      - {name: easy, weight: 3, reasoning_median_tokens: 2500, answer_at: [0.2, 0.6]}
+      - {name: hard, weight: 1, reasoning_median_tokens: 12000, answer_at: [0.7, 0.98]}
   ```
 
 A tier belongs to the question, not the sample or the run: questions are ranked by a
@@ -318,8 +319,9 @@ hash of `behavior.seed` and their text and cut into blocks sized by the weights 
 remainder), so 30 questions at 7:5:3 are exactly 14/10/6, a question keeps its tier
 whichever subset you run, and every policy sees the same hard questions.
 `simulation.json` lists which `problem_idx` fell in each tier. `qed sim-config` shows
-the resolved tiers and what they imply, including the share of questions solvable
-within four samples, which is the ceiling on what a four-sample policy can reach.
+the resolved tiers, their typical first-answer positions, and the share of questions
+solvable within four samples. With accuracy constant that is 1 - (1 - p)^4 (0.985 at
+the default), so a target like 18 of 30 stays comfortably reachable.
 
 ### Trajectories
 

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_naive",
-  "canonical_manifest_sha256": "0cc8c83235f99a032b3a9d59577d8af890916bb3c05abd4bae159b9092e959e3",
+  "canonical_manifest_sha256": "474cbeb391de248e3d1ed55f326b38eeaf8f42fbc7b9fc93b7b50af785d42ea2",
   "policy": "Complete fan-out of every sample of every question at once; candidates only from the final box of naturally ended responses; no continuations, rounds or barriers",
-  "change_reason": "Mixed difficulty is the simulation default; relative preset",
+  "change_reason": "Difficulty controls answer timing, not accuracy",
   "sha256": {
     "extensions/naive/__init__.py": "92b14d300c49dc3ee02cb1ad53dcf5f92c17b7b0941026aa35b9a97d4500c1a1",
     "extensions/naive/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",

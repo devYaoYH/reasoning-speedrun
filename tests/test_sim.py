@@ -120,32 +120,39 @@ class DifficultyTests(unittest.TestCase):
             plan = eng.plan_for("Question 3", seed)
             self.assertEqual(plan.render(0, plan.total), reference.render(0, reference.total))
 
-    def test_mixed_is_calibrated_so_the_flat_knobs_mean_overall_accuracy_and_length(self):
-        uniform = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform"]).behavior)
-        for p in (0.1, 0.3, 0.5, 0.65, 0.9, 0.99):
+    def test_mixed_changes_when_answers_appear_never_whether_they_are_right(self):
+        for p in (0.0, 0.1, 0.5, 0.65, 0.99, 1.0):
             mixed = expected(SimConfig.from_sources(None, [f"behavior.p_correct={p}"]).behavior)
-            self.assertAlmostEqual(mixed["mean_p_correct"], p, places=6)
-            accuracy = [tier["p_correct"] for tier in mixed["tiers"]]
-            self.assertTrue(accuracy[0] > accuracy[1] > accuracy[2], (p, accuracy))
+            self.assertEqual({tier["p_correct"] for tier in mixed["tiers"]}, {float(p)})
+            self.assertAlmostEqual(mixed["mean_p_correct"], p)
+        mixed = expected(SimConfig().behavior)
+        # Independent correctness: four samples all wrong is (1 - p)^4, whatever the tiers.
+        self.assertAlmostEqual(mixed["p_four_samples_all_wrong"], 0.35**4)
+        self.assertAlmostEqual(mixed["p_question_solvable_in_four_samples"], 1 - 0.35**4)
+        self.assertGreater(30 * mixed["p_question_solvable_in_four_samples"], 18)
+        # What the tiers do change: length and the position of the first answer, in order.
+        lengths = [t["reasoning_median_tokens"] for t in mixed["tiers"]]
+        first = [t["typical_first_answer_tokens"] for t in mixed["tiers"]]
+        self.assertTrue(lengths[0] < lengths[1] < lengths[2], lengths)
+        self.assertTrue(first[0] < first[1] < first[2], first)
+        windows = [t["answer_at"] for t in mixed["tiers"]]
+        self.assertTrue(windows[0][0] < windows[1][0] < windows[2][0], windows)
+
+    def test_mixed_is_calibrated_to_the_flat_length_and_answer_window(self):
         for median in (1000, 6000, 20000):
             flat = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform", f"behavior.reasoning_median_tokens={median}"]).behavior)
             mixed = expected(SimConfig.from_sources(None, [f"behavior.reasoning_median_tokens={median}"]).behavior)
             self.assertAlmostEqual(mixed["mean_reasoning_tokens"] / flat["mean_reasoning_tokens"], 1, delta=0.01)
-            lengths = [tier["reasoning_median_tokens"] for tier in mixed["tiers"]]
-            self.assertTrue(lengths[0] < lengths[1] < lengths[2], lengths)
-        for extreme in (0, 1):  # no spread is possible at the extremes
-            tiers_at = expected(SimConfig.from_sources(None, [f"behavior.p_correct={extreme}"]).behavior)["tiers"]
-            self.assertEqual({tier["p_correct"] for tier in tiers_at}, {float(extreme)})
-        self.assertAlmostEqual(uniform["mean_p_correct"], 0.65)
-
-    def test_mixed_correlates_samples_and_leaves_the_default_target_reachable(self):
-        flat = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform"]).behavior)
-        mixed = expected(SimConfig().behavior)
-        self.assertAlmostEqual(flat["p_four_samples_all_wrong"], 0.35**4)
-        self.assertGreater(mixed["p_four_samples_all_wrong"], 5 * flat["p_four_samples_all_wrong"])
-        # Hard questions are mostly unsolvable, yet a four-sample policy can still solve far more than 18 of 30.
-        self.assertGreater(30 * mixed["p_question_solvable_in_four_samples"], 24)
-        self.assertLess(mixed["p_question_solvable_in_four_samples"], flat["p_question_solvable_in_four_samples"])
+        # The medium tier is the flat answer window; easy shifts earlier and hard later.
+        config = SimConfig.from_sources(None, ["behavior.answer_at=[0.5, 0.6]"])
+        easy, medium, hard = (t["answer_at"] for t in expected(config.behavior)["tiers"])
+        self.assertEqual(medium, [0.5, 0.6])
+        self.assertTrue(easy[1] < medium[0] + 0.1 and hard[0] > medium[0])
+        # Shifted windows stay inside [0, 1] and ordered at the edges.
+        for window in ("[0.0, 0.05]", "[0.95, 1.0]"):
+            for tier in expected(SimConfig.from_sources(None, [f"behavior.answer_at={window}"]).behavior)["tiers"]:
+                low, high = tier["answer_at"]
+                self.assertTrue(0 <= low <= high <= 1, (window, tier))
 
     def test_flat_knobs_do_not_override_an_explicit_tier_list(self):
         config = SimConfig.from_sources(None, ["behavior.p_correct=0.2",
@@ -188,23 +195,22 @@ class DifficultyTests(unittest.TestCase):
         eng = self.eng("behavior.difficulty=[{weight: 1}, {weight: 1}, {weight: 1}]", key={f"q{i}": i for i in range(10)})
         self.assertEqual(sorted(sum(1 for t in eng.tier_of.values() if t == i) for i in range(3)), [3, 3, 4])
 
-    def test_samples_of_one_question_share_its_tier_and_tiers_differ_in_length_and_accuracy(self):
-        eng = self.eng("behavior.difficulty=mixed", "behavior.reasoning_min_tokens=50")
-        by_tier = {0: [], 1: [], 2: []}
+    def test_tiers_differ_in_length_and_first_answer_position_but_not_accuracy(self):
+        eng = self.eng("behavior.reasoning_min_tokens=50")
+        stats = {0: [], 1: [], 2: []}
         for text in self.KEY:
-            tier = eng.tier_index(text)
             plans = [eng.plan_for(text, seed) for seed in range(60)]
-            by_tier[tier].append((sum(p.reasoning for p in plans) / 60, sum(p.final_answer == p.gold for p in plans) / 60))
-        mean = lambda rows, i: sum(r[i] for r in rows) / len(rows)
-        easy_len, med_len, hard_len = (mean(by_tier[i], 0) for i in range(3))
-        easy_acc, med_acc, hard_acc = (mean(by_tier[i], 1) for i in range(3))
-        self.assertLess(easy_len, med_len)
-        self.assertLess(med_len, hard_len)
-        self.assertGreater(easy_acc, med_acc)
-        self.assertGreater(med_acc, hard_acc)
-        self.assertAlmostEqual(easy_acc, 0.92, delta=0.06)
-        self.assertAlmostEqual(med_acc, 0.60, delta=0.08)
-        self.assertAlmostEqual(hard_acc, 0.10, delta=0.1)
+            stats[eng.tier_index(text)].append((
+                sum(p.reasoning for p in plans) / 60,
+                sum(p.final_answer == p.gold for p in plans) / 60,
+                sum(min(p.inserts) for p in plans) / 60,  # token position of the first planted answer
+            ))
+        mean = lambda i, col: sum(row[col] for row in stats[i]) / len(stats[i])
+        for column in (0, 2):
+            self.assertLess(mean(0, column), mean(1, column))
+            self.assertLess(mean(1, column), mean(2, column))
+        for tier in range(3):
+            self.assertAlmostEqual(mean(tier, 1), 0.65, delta=0.06)
 
     def test_prompts_outside_the_key_still_get_a_tier(self):
         eng = self.eng("behavior.difficulty=mixed")

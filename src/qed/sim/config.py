@@ -31,8 +31,8 @@ class Behavior:
     p_wrong_first: float = 0.15  # chance of a wrong tentative answer before the final one
     final_tokens: int = 40  # tokens of the final (non-reasoning) response
     answers: str | None = None  # JSONL of problem/answer; default: the run's own answer key
-    # Per-question difficulty: "mixed" (easy/medium/hard around p_correct and the median length),
-    # "uniform" (every question alike), or a list of tiers {name?, weight, p_correct?, ...}.
+    # Per-question difficulty sets WHEN answers appear (length, answer_at), not accuracy:
+    # "mixed" (easy/medium/hard), "uniform" (every question alike), or a list of tiers.
     difficulty: str | list | None = "mixed"
 
     def validate(self):
@@ -58,44 +58,35 @@ class Behavior:
 TIER_KNOBS = ("p_correct", "reasoning_median_tokens", "reasoning_sigma", "answer_at", "p_wrong_first")
 
 PRESETS = {
-    # Easy/medium/hard in the ratio 7:5:3 (14/10/6 of 30 questions). A preset is defined
-    # *relative to* the flat knobs: `logit` shifts accuracy and `length` scales reasoning
-    # length per tier, then both are calibrated so the weighted mean accuracy equals
-    # `p_correct` and the weighted mean length equals the flat length. So the flat knobs
-    # keep meaning "overall accuracy" and "overall length"; the tiers only add spread.
+    # Easy/medium/hard in the ratio 7:5:3 (14/10/6 of 30 questions). Difficulty controls WHEN
+    # answers appear, not whether they are right: accuracy stays `p_correct` in every tier.
+    # A preset is relative to the flat knobs: `length` scales reasoning length (calibrated so
+    # the weighted mean equals the flat length) and `answer_shift` moves the `answer_at`
+    # window earlier (easy) or later (hard).
     "mixed": [
-        {"name": "easy", "weight": 7, "logit": 2.44, "length": 0.433},
-        {"name": "medium", "weight": 5, "logit": 0.405, "length": 1.083},
-        {"name": "hard", "weight": 3, "logit": -2.197, "length": 2.167},
+        {"name": "easy", "weight": 7, "length": 0.433, "answer_shift": -0.15},
+        {"name": "medium", "weight": 5, "length": 1.083, "answer_shift": 0.0},
+        {"name": "hard", "weight": 3, "length": 2.167, "answer_shift": 0.15},
     ],
 }
 
 
 def calibrated(behavior, preset):
-    """Absolute tiers for a relative preset, matching the flat accuracy and length."""
-    import math
-
+    """Absolute tiers for a relative preset; accuracy is untouched."""
     total = sum(row["weight"] for row in preset)
-    shares = [row["weight"] / total for row in preset]
-    sigmoid = lambda x: 1 / (1 + math.exp(-x))
-    target = behavior.p_correct
-    if target <= 0 or target >= 1:
-        accuracy = [float(target)] * len(preset)
-    else:
-        low, high = -40.0, 40.0
-        for _ in range(100):
-            mid = (low + high) / 2
-            if sum(s * sigmoid(mid + row["logit"]) for s, row in zip(shares, preset)) < target:
-                low = mid
-            else:
-                high = mid
-        accuracy = [sigmoid((low + high) / 2 + row["logit"]) for row in preset]
-    scale = sum(s * row["length"] for s, row in zip(shares, preset))
-    return [
-        {"name": row["name"], "weight": row["weight"], "p_correct": acc,
-         "reasoning_median_tokens": max(1, round(behavior.reasoning_median_tokens * row["length"] / scale))}
-        for row, acc in zip(preset, accuracy)
-    ]
+    scale = sum(row["weight"] / total * row["length"] for row in preset)
+    low, high = behavior.answer_at
+    tiers_ = []
+    for row in preset:
+        shift = row["answer_shift"]
+        window = [min(1.0, max(0.0, low + shift)), min(1.0, max(0.0, high + shift))]
+        tiers_.append({
+            "name": row["name"],
+            "weight": row["weight"],
+            "reasoning_median_tokens": max(1, round(behavior.reasoning_median_tokens * row["length"] / scale)),
+            "answer_at": [round(window[0], 4), round(max(window[0], window[1]), 4)],
+        })
+    return tiers_
 
 
 def tiers(behavior):
@@ -143,7 +134,10 @@ def expected(behavior):
 
     return {
         "tiers": [
-            {"name": r["name"], "weight": round(r["weight"], 4), **{k: (list(v) if isinstance(v, list) else v) for k in TIER_KNOBS for v in [getattr(r["behavior"], k)]}}
+            {"name": r["name"], "weight": round(r["weight"], 4),
+             **{k: (list(v) if isinstance(v, list) else v) for k in TIER_KNOBS for v in [getattr(r["behavior"], k)]},
+             # Typical token position of the first answer: median length times the window midpoint.
+             "typical_first_answer_tokens": round(r["behavior"].reasoning_median_tokens * sum(r["behavior"].answer_at) / 2)}
             for r in resolved
         ],
         "mean_p_correct": sum(r["weight"] * r["behavior"].p_correct for r in resolved),
