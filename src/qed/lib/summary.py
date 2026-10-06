@@ -141,7 +141,8 @@ async def finalize(
     atomic_json(output / "overhead.json", summary["overhead"])
     atomic_json(output / "summary.json", summary)
     print(json.dumps(summary, indent=2), flush=True)
-    print(headline(summary, output, bool(config.get("simulated"))), flush=True)
+    if official_start is not None:  # a run that never started has nothing to headline
+        print(headline(summary, output, bool(config.get("simulated"))), flush=True)
     return summary
 
 

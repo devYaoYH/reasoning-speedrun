@@ -38,6 +38,9 @@ def run_cli(argv, **env):
 
 class FriendlyErrorTests(unittest.TestCase):
     def test_missing_data_is_one_line_that_names_both_ways_forward(self):
+        previous = Path.cwd()
+        os.chdir(ROOT)
+        self.addCleanup(os.chdir, previous)
         code, _, err, _ = run_cli([])
         self.assertEqual(code, 1)
         self.assertNotIn("Traceback", err)
@@ -45,6 +48,7 @@ class FriendlyErrorTests(unittest.TestCase):
         self.assertIn("qed fetch-data", err)
         self.assertIn("--simulate", err)
         self.assertIn("synthetic_grader.yaml", err)
+        self.assertNotIn(str(ROOT), err)  # paths are shown relative to the working directory when possible
         self.assertIn("QED_DEBUG", err)
 
     def test_debug_flag_restores_the_traceback(self):
@@ -58,8 +62,9 @@ class FriendlyErrorTests(unittest.TestCase):
         argv = ["--grader-config", str(EXAMPLES / "integer_grader.yaml"),
                 "--system-prompt-file", str(EXAMPLES / "integer_prompt.txt"), "--parallelism", "2", "--target-correct", "2"]
         with patch.object(pynvml, "nvmlInit", side_effect=pynvml.NVMLError_LibraryNotFound()):
-            code, _, err, summaries = run_cli(argv)
+            code, out, err, summaries = run_cli(argv)
         self.assertEqual(code, 1)
+        self.assertNotIn("correct", out.split("}")[-1])  # no "0 of 2 correct" verdict for a run that never started
         self.assertIn("No usable NVIDIA GPU driver", err)
         self.assertIn("--simulate", err)
         self.assertNotIn("Unsupported AIME year", err)

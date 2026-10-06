@@ -13,6 +13,15 @@ def workdir() -> Path:
     return Path(os.environ.get("QED_HOME") or Path.cwd()).resolve()
 
 
+def shown(path) -> str:
+    """A path as short as is unambiguous: relative to the working directory when inside it."""
+    path = Path(path).resolve()
+    try:
+        return str(path.relative_to(Path.cwd()))
+    except ValueError:
+        return str(path)
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 

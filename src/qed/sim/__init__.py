@@ -13,7 +13,7 @@ import yaml
 
 from qed.lib import aime
 from qed.lib.datasets import grader_dataset
-from qed.lib.common import PACKAGE, workdir
+from qed.lib.common import PACKAGE, shown, workdir
 from qed.sim.config import SimConfig, expected
 from qed.sim.engine import Engine
 from qed.sim.gpu import SimulatedGPUSampler
@@ -58,7 +58,7 @@ def answer_key(args, config):
         raise FileNotFoundError(
             f"{path} is missing: the simulated model needs an answer key. Run "
             f"`qed fetch-data --year {args.benchmark_year}`, or use the bundled synthetic questions "
-            f"(--grader-config {PACKAGE / 'examples/synthetic_grader.yaml'}), your own questions, "
+            f"(--grader-config {shown(PACKAGE / 'examples/synthetic_grader.yaml')}), your own questions, "
             "or --sim behavior.answers=FILE"
         )
     return read_key(path)

@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from qed.lib.common import PACKAGE
+from qed.lib.common import PACKAGE, shown
 
 YEARS = (2024, 2025, 2026)
 ROLES = ("prewarming", "development", "generalization")
@@ -59,8 +59,8 @@ def read_rows(path):
         raise FileNotFoundError(
             f"{path} is missing. Fetch the pinned dataset with `qed fetch-data --year YEAR` "
             "(needs `pip install -e '.[data]'`), or try qed without data or a GPU: "
-            f"`qed --simulate --grader-config {PACKAGE / 'examples/synthetic_grader.yaml'} "
-            f"--system-prompt-file {PACKAGE / 'examples/integer_prompt.txt'}`"
+            f"`qed --simulate --grader-config {shown(PACKAGE / 'examples/synthetic_grader.yaml')} "
+            f"--system-prompt-file {shown(PACKAGE / 'examples/integer_prompt.txt')}`"
         )
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     if [r["problem_idx"] for r in rows] != list(range(1, 31)):
