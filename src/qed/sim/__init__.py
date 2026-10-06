@@ -13,19 +13,28 @@ import yaml
 
 from qed.lib import aime
 from qed.lib.common import PACKAGE, workdir
-from qed.sim.config import SimConfig
+from qed.sim.config import SimConfig, expected
 from qed.sim.engine import Engine
 from qed.sim.gpu import SimulatedGPUSampler
 from qed.sim.transport import SimulatedTransport
 
 
+class Key(dict):
+    """Problem text -> integer answer, remembering each question's problem_idx for reports."""
+
+    indices = {}
+
+
 def read_key(path):
     rows = [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
-    key = {}
+    key = Key()
+    key.indices = {}
     for row in rows:
         text, answer = row.get("problem"), row.get("answer")
         if isinstance(text, str) and str(answer).strip().lstrip("-").isdigit():
             key[text.strip()] = int(answer)
+            if row.get("problem_idx") is not None:
+                key.indices[text.strip()] = row["problem_idx"]
     if not key:
         raise ValueError(f"{path}: no rows with a problem statement and an integer answer")
     return key
@@ -83,6 +92,7 @@ class Simulation:
                 "max_new_tokens": engine.max_new_tokens,
                 "gpu_memory_utilization": engine.gpu_memory_utilization,
                 "kv_capacity_tokens": engine.kv_capacity_tokens,
+                "difficulty_tiers": expected(config.behavior)["tiers"],
             },
         }
         return cls(config, engine, args)

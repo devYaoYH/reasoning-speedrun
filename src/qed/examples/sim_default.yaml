@@ -17,7 +17,7 @@ weights_mib: 2400            # resident weights, subtracted before sizing the KV
 kv_bytes_per_token: 36864    # 2 * layers * kv_heads * head_dim * bytes (3B-class model)
 
 behavior:                    # the simulated *model*
-  seed: 0
+  seed: 0                    # also seeds which questions land in which difficulty tier
   p_correct: 0.65            # chance a sample's final answer equals the answer key
   reasoning_median_tokens: 6000   # lognormal length of the reasoning
   reasoning_sigma: 0.8
@@ -26,3 +26,12 @@ behavior:                    # the simulated *model*
   p_wrong_first: 0.15        # chance of a wrong tentative answer before the final one
   final_tokens: 40           # tokens of the final (non-reasoning) response
   # answers: path/to/key.jsonl   # default: the run's own answer key
+
+  # Per-question difficulty. uniform: every question alike (the flat knobs above).
+  # mixed: easy/medium/hard tiers with the same mean accuracy and length as the defaults.
+  # Or a list; a tier overrides p_correct, reasoning_median_tokens, reasoning_sigma,
+  # answer_at, p_wrong_first and inherits the rest. Preview with `qed sim-config`.
+  difficulty: uniform
+  # difficulty:
+  #   - {name: easy, weight: 3, p_correct: 0.9, reasoning_median_tokens: 2500}
+  #   - {name: hard, weight: 1, p_correct: 0.2, reasoning_median_tokens: 12000}

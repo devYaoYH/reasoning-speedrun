@@ -1,6 +1,6 @@
 """Simulation knobs: validated, YAML/JSON friendly, overridable with ``--sim KEY=VALUE``."""
 
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields, replace
 import json
 from pathlib import Path
 
@@ -31,6 +31,97 @@ class Behavior:
     p_wrong_first: float = 0.15  # chance of a wrong tentative answer before the final one
     final_tokens: int = 40  # tokens of the final (non-reasoning) response
     answers: str | None = None  # JSONL of problem/answer; default: the run's own answer key
+    # Per-question difficulty: "uniform" (every question alike), "mixed" (easy/medium/hard),
+    # or a list of tiers {name?, weight, p_correct?, reasoning_median_tokens?, ...}.
+    difficulty: str | list | None = "uniform"
+
+    def validate(self):
+        positive = {"reasoning_median_tokens": self.reasoning_median_tokens,
+                    "reasoning_min_tokens": self.reasoning_min_tokens, "final_tokens": self.final_tokens}
+        bad = [f"behavior.{k}" for k, v in positive.items() if not isinstance(v, (int, float)) or v <= 0]
+        if bad:
+            raise ValueError("Simulation values must be positive: " + ", ".join(bad))
+        if not isinstance(self.reasoning_sigma, (int, float)) or self.reasoning_sigma < 0:
+            raise ValueError("behavior.reasoning_sigma must be nonnegative")
+        for name in ("p_correct", "p_wrong_first"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                raise ValueError(f"behavior.{name} must lie in [0, 1]")
+        answer_at = self.answer_at
+        if not (isinstance(answer_at, list) and len(answer_at) == 2 and all(isinstance(x, (int, float)) for x in answer_at)
+                and 0 <= answer_at[0] <= answer_at[1] <= 1):
+            raise ValueError("behavior.answer_at must be [low, high] with 0 <= low <= high <= 1")
+        return self
+
+
+# Knobs a difficulty tier may override; anything it leaves out is inherited from `behavior`.
+TIER_KNOBS = ("p_correct", "reasoning_median_tokens", "reasoning_sigma", "answer_at", "p_wrong_first")
+
+PRESETS = {
+    # Easy questions are short and usually right, hard ones long and usually wrong. Chosen so
+    # mean accuracy (0.64) and mean reasoning length (within 1%) match the uniform defaults.
+    "mixed": [
+        {"name": "easy", "weight": 0.4, "p_correct": 0.92, "reasoning_median_tokens": 2400},
+        {"name": "medium", "weight": 0.4, "p_correct": 0.62, "reasoning_median_tokens": 6200},
+        {"name": "hard", "weight": 0.2, "p_correct": 0.12, "reasoning_median_tokens": 13000},
+    ],
+}
+
+
+def tiers(behavior):
+    """Resolved difficulty tiers: ``[{"name", "weight" (normalized), "behavior"}]``.
+
+    ``uniform`` (or unset) is a single tier equal to the flat knobs, so a configuration
+    without ``difficulty`` behaves exactly as it always did.
+    """
+    spec = behavior.difficulty
+    if spec in (None, "uniform"):
+        spec = [{"name": "uniform", "weight": 1}]
+    elif isinstance(spec, str):
+        if spec not in PRESETS:
+            raise ValueError(f"behavior.difficulty must be uniform, {', '.join(PRESETS)} or a list of tiers (got {spec!r})")
+        spec = PRESETS[spec]
+    if not isinstance(spec, list) or not spec:
+        raise ValueError("behavior.difficulty must be a name or a nonempty list of tiers")
+    resolved = []
+    for index, tier in enumerate(spec):
+        if not isinstance(tier, dict):
+            raise ValueError("Each difficulty tier must be a mapping")
+        unknown = sorted(set(tier) - {"name", "weight", *TIER_KNOBS})
+        if unknown:
+            raise ValueError(f"Unknown difficulty tier keys: {', '.join(unknown)}. Valid: name, weight, {', '.join(TIER_KNOBS)}")
+        weight = number(tier.get("weight"))
+        if not isinstance(weight, (int, float)) or weight <= 0:
+            raise ValueError("Each difficulty tier needs a positive weight")
+        overrides = {k: (v if k == "answer_at" else number(v)) for k, v in tier.items() if k in TIER_KNOBS}
+        flat = replace(behavior, difficulty=None, **overrides)
+        flat.validate()
+        resolved.append({"name": str(tier.get("name", f"tier{index + 1}")), "weight": weight, "behavior": flat})
+    total = sum(r["weight"] for r in resolved)
+    for r in resolved:
+        r["weight"] /= total
+    return resolved
+
+
+def expected(behavior):
+    """Headline statistics implied by the tiers: what the knobs add up to."""
+    resolved = tiers(behavior)
+    import math
+
+    def mean_len(b):
+        return b.reasoning_median_tokens * math.exp(b.reasoning_sigma**2 / 2)
+
+    return {
+        "tiers": [
+            {"name": r["name"], "weight": round(r["weight"], 4), **{k: (list(v) if isinstance(v, list) else v) for k in TIER_KNOBS for v in [getattr(r["behavior"], k)]}}
+            for r in resolved
+        ],
+        "mean_p_correct": sum(r["weight"] * r["behavior"].p_correct for r in resolved),
+        "mean_reasoning_tokens": sum(r["weight"] * mean_len(r["behavior"]) for r in resolved),
+        # Samples of one question share its tier, so they are correlated: this is the chance
+        # that four samples of a question all end wrong (independent samples: (1-p)^4).
+        "p_four_samples_all_wrong": sum(r["weight"] * (1 - r["behavior"].p_correct) ** 4 for r in resolved),
+    }
 
 
 @dataclass
@@ -51,7 +142,6 @@ class SimConfig:
     behavior: Behavior = field(default_factory=Behavior)
 
     def validate(self):
-        b = self.behavior
         positive = {
             "decode_tps": self.decode_tps,
             "prefill_tps": self.prefill_tps,
@@ -60,21 +150,14 @@ class SimConfig:
             "block_tokens": self.block_tokens,
             "vram_total_mib": self.vram_total_mib,
             "kv_bytes_per_token": self.kv_bytes_per_token,
-            "behavior.reasoning_median_tokens": b.reasoning_median_tokens,
-            "behavior.reasoning_min_tokens": b.reasoning_min_tokens,
-            "behavior.final_tokens": b.final_tokens,
         }
         bad = [k for k, v in positive.items() if not isinstance(v, (int, float)) or v <= 0]
         if bad:
             raise ValueError("Simulation values must be positive: " + ", ".join(bad))
-        if self.weights_mib < 0 or b.reasoning_sigma < 0:
-            raise ValueError("weights_mib and behavior.reasoning_sigma must be nonnegative")
-        for name, value in (("behavior.p_correct", b.p_correct), ("behavior.p_wrong_first", b.p_wrong_first)):
-            if not 0 <= value <= 1:
-                raise ValueError(f"{name} must lie in [0, 1]")
-        lo, hi = (b.answer_at + [None, None])[:2] if len(b.answer_at) == 2 else (None, None)
-        if lo is None or not 0 <= lo <= hi <= 1:
-            raise ValueError("behavior.answer_at must be [low, high] with 0 <= low <= high <= 1")
+        if not isinstance(self.weights_mib, (int, float)) or self.weights_mib < 0:
+            raise ValueError("weights_mib must be nonnegative")
+        self.behavior.validate()
+        tiers(self.behavior)  # validates difficulty and every tier
         if self.max_model_len is not None and self.max_model_len < 2:
             raise ValueError("max_model_len must be at least 2")
         if self.gpu_memory_utilization is not None and not 0 < self.gpu_memory_utilization <= 1:

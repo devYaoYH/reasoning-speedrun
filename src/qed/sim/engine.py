@@ -13,6 +13,9 @@ from collections import namedtuple
 import hashlib
 import time
 
+import zlib
+
+from qed.sim.config import tiers as resolve_tiers
 from qed.sim.model import build_plan, plan_rng
 
 Load = namedtuple("Load", "running waiting live_tokens")
@@ -82,6 +85,40 @@ class Engine:
             "peak_running": 0, "peak_waiting": 0, "peak_live_tokens": 0,
         }
         self.counter = 0
+        self.tiers = resolve_tiers(config.behavior)
+        self.tier_of = self.assign_tiers()
+        self.seen_tier = {}  # question text -> tier index, for the report
+
+    def assign_tiers(self):
+        """Fix each answer-key question's difficulty tier, independent of the run.
+
+        Questions are ranked by a hash of (behavior.seed, text) and cut into contiguous
+        blocks sized by tier weight (largest remainder), so the counts match the weights
+        exactly even for 30 questions, and a question keeps its tier whatever subset is run.
+        """
+        texts = sorted(self.key, key=lambda x: zlib.crc32(f"{self.config.behavior.seed}|tier|{x}".encode()))
+        exact = [r["weight"] * len(texts) for r in self.tiers]
+        counts = [int(e) for e in exact]
+        for index in sorted(range(len(exact)), key=lambda i: exact[i] - counts[i], reverse=True)[: len(texts) - sum(counts)]:
+            counts[index] += 1
+        assignment, start = {}, 0
+        for index, count in enumerate(counts):
+            for text in texts[start : start + count]:
+                assignment[text] = index
+            start += count
+        return assignment
+
+    def tier_index(self, text):
+        """Tier of a question; prompts outside the key (warmup, prewarm) hash into one."""
+        if text in self.tier_of:
+            return self.tier_of[text]
+        u = (zlib.crc32(f"{self.config.behavior.seed}|tier|{text}".encode()) % 10**6) / 10**6
+        total = 0.0
+        for index, r in enumerate(self.tiers):
+            total += r["weight"]
+            if u < total:
+                return index
+        return len(self.tiers) - 1
 
     @property
     def kv_capacity_tokens(self):
@@ -93,11 +130,14 @@ class Engine:
         return Load(self.running, self.waiting, self.live_tokens)
 
     def plan_for(self, text, request_seed, min_tokens=0):
-        gold = self.key.get(text.strip())
+        text = text.strip()
+        gold = self.key.get(text)
         self.counter += 1
         seed = request_seed if request_seed is not None else f"auto{self.counter}"
         rng = plan_rng(self.config.behavior.seed, seed, text)
-        return build_plan(self.config.behavior, rng, gold, min_tokens)
+        tier = self.tier_index(text)
+        self.seen_tier[text] = tier
+        return build_plan(self.tiers[tier]["behavior"], rng, gold, min_tokens)
 
     def continuation(self, prompt_ids):
         return self.sequences.get(digest(prompt_ids))
@@ -195,8 +235,17 @@ class Engine:
 
     def report(self):
         c = self.counters
+        indices = getattr(self.key, "indices", {})
+        by_tier = {r["name"]: [] for r in self.tiers}
+        for text, index in self.seen_tier.items():
+            if text in self.key:
+                by_tier[self.tiers[index]["name"]].append(indices.get(text, text[:40]))
         return {
             **c,
+            "difficulty": {
+                "tiers": [{"name": r["name"], "weight": round(r["weight"], 4)} for r in self.tiers],
+                "questions_by_tier": {name: sorted(v, key=str) for name, v in by_tier.items()},
+            },
             "prefix_hit_fraction": c["prefix_hits"] / c["prefix_queries"] if c["prefix_queries"] else None,
             "kv_capacity_tokens": self.kv_capacity_tokens,
             "kv_overcommit_peak_tokens": max(0, c["peak_live_tokens"] - self.kv_capacity_tokens),

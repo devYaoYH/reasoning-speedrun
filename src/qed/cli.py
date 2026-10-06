@@ -70,6 +70,7 @@ async def execute(args):
 SUBCOMMANDS = {
     "view": ("qed.viewer.server", "Browse saved attempts in a local viewer"),
     "fetch-data": ("qed.fetch_data", "Download the pinned benchmark files"),
+    "sim-config": ("qed.sim.describe", "Show a resolved --simulate configuration"),
 }
 
 
@@ -84,8 +85,8 @@ def main(argv=None):
         return launch_extension(selected.version, remaining)
     if "--help" in remaining or "-h" in remaining:
         print(
-            "Subcommands: view (attempt viewer), fetch-data (benchmark files); "
-            "see `qed view --help`\n"
+            "Subcommands: view (attempt viewer), fetch-data (benchmark files), "
+            "sim-config (resolved --simulate settings); see `qed view --help`\n"
             "Policy selection: --version {v1,v1.6,naive}\n"
             "Configuration: --preset FILE --system-prompt-file FILE\n"
             "Explicit flags override preset defaults. Help launches no services."

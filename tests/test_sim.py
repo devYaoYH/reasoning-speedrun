@@ -17,7 +17,7 @@ from qed import cli
 from qed.lib.extraction import CandidateDetector
 from qed.lib.metadata import validate_metadata
 from qed.lib.metrics import parse_engine_metrics
-from qed.sim.config import SimConfig
+from qed.sim.config import SimConfig, expected, tiers
 from qed.sim.engine import Engine
 from qed.sim.model import build_plan, plan_rng
 from qed.sim.transport import SimulatedTransport
@@ -96,6 +96,127 @@ class ConfigTests(unittest.TestCase):
                     ["x.y=1"]):
             with self.assertRaises(ValueError, msg=bad):
                 SimConfig.from_sources(None, bad)
+
+
+class DifficultyTests(unittest.TestCase):
+    KEY = {f"Question {i}": i for i in range(1, 31)}
+
+    def eng(self, *overrides, key=None):
+        return Engine(SimConfig.from_sources(None, list(overrides)), "org/model", self.KEY if key is None else key, max_model_len=8192)
+
+    def test_unset_and_uniform_are_one_tier_equal_to_the_flat_knobs(self):
+        for overrides in ([], ["behavior.difficulty=uniform"]):
+            config = SimConfig.from_sources(None, overrides + ["behavior.p_correct=0.3"])
+            (only,) = tiers(config.behavior)
+            self.assertEqual((only["weight"], only["behavior"].p_correct), (1.0, 0.3))
+
+    def test_flat_configuration_reproduces_the_pre_tier_plans_exactly(self):
+        config = SimConfig()
+        eng = Engine(config, "m", self.KEY, max_model_len=8192)
+        for seed in range(10):
+            reference = build_plan(config.behavior, plan_rng(0, seed, "Question 3"), 3)
+            plan = eng.plan_for("Question 3", seed)
+            self.assertEqual(plan.render(0, plan.total), reference.render(0, reference.total))
+
+    def test_mixed_preset_matches_the_uniform_means_and_shows_the_correlation(self):
+        flat, mixed = expected(SimConfig().behavior), expected(SimConfig.from_sources(None, ["behavior.difficulty=mixed"]).behavior)
+        self.assertAlmostEqual(mixed["mean_p_correct"], flat["mean_p_correct"], delta=0.02)
+        self.assertAlmostEqual(mixed["mean_reasoning_tokens"] / flat["mean_reasoning_tokens"], 1, delta=0.02)
+        self.assertAlmostEqual(flat["p_four_samples_all_wrong"], 0.35**4)
+        self.assertGreater(mixed["p_four_samples_all_wrong"], 5 * flat["p_four_samples_all_wrong"])
+
+    def test_tier_overrides_inherit_everything_else_and_weights_normalize(self):
+        config = SimConfig.from_sources(None, ["behavior.p_wrong_first=0.4", "behavior.reasoning_sigma=0.3",
+                                               "behavior.difficulty=[{weight: 1, p_correct: 0.2}, {weight: 3, name: easy, p_correct: 0.9, answer_at: [0.1, 0.2]}]"])
+        first, second = tiers(config.behavior)
+        self.assertEqual((first["weight"], second["weight"]), (0.25, 0.75))
+        self.assertEqual((first["name"], second["name"]), ("tier1", "easy"))
+        self.assertEqual((first["behavior"].p_correct, first["behavior"].p_wrong_first, first["behavior"].reasoning_sigma), (0.2, 0.4, 0.3))
+        self.assertEqual((second["behavior"].answer_at, second["behavior"].p_wrong_first), ([0.1, 0.2], 0.4))
+
+    def test_bad_tiers_are_rejected_with_guidance(self):
+        for bad in ("behavior.difficulty=nope", "behavior.difficulty=[]", "behavior.difficulty=[{p_correct: 0.5}]",
+                    "behavior.difficulty=[{weight: 1, bogus: 2}]", "behavior.difficulty=[{weight: 1, p_correct: 3}]",
+                    "behavior.difficulty=[{weight: 0}]", "behavior.difficulty=[1]",
+                    "behavior.difficulty=[{weight: 1, answer_at: [0.9, 0.1]}]"):
+            with self.assertRaises(ValueError, msg=bad):
+                SimConfig.from_sources(None, [bad])
+        with self.assertRaisesRegex(ValueError, "mixed"):
+            SimConfig.from_sources(None, ["behavior.difficulty=nope"])
+
+    def test_assignment_matches_the_weights_exactly_and_is_stable(self):
+        eng = self.eng("behavior.difficulty=mixed")
+        counts = [sum(1 for t in eng.tier_of.values() if t == i) for i in range(3)]
+        self.assertEqual(counts, [12, 12, 6])  # 0.4, 0.4, 0.2 of 30 questions
+        # The same question has the same tier whichever subset of questions a run selects.
+        again = self.eng("behavior.difficulty=mixed", key={k: v for k, v in list(self.KEY.items())[:30]})
+        self.assertEqual(eng.tier_of, again.tier_of)
+        # ...and across request seeds: difficulty belongs to the question, not the sample.
+        self.assertEqual({eng.tier_index("Question 7")}, {eng.tier_index("Question 7") for _ in range(3)})
+        other = self.eng("behavior.difficulty=mixed", "behavior.seed=5")
+        self.assertNotEqual(eng.tier_of, other.tier_of)
+
+    def test_largest_remainder_handles_awkward_counts(self):
+        eng = self.eng("behavior.difficulty=[{weight: 1}, {weight: 1}, {weight: 1}]", key={f"q{i}": i for i in range(10)})
+        self.assertEqual(sorted(sum(1 for t in eng.tier_of.values() if t == i) for i in range(3)), [3, 3, 4])
+
+    def test_samples_of_one_question_share_its_tier_and_tiers_differ_in_length_and_accuracy(self):
+        eng = self.eng("behavior.difficulty=mixed", "behavior.reasoning_min_tokens=50")
+        by_tier = {0: [], 1: [], 2: []}
+        for text in self.KEY:
+            tier = eng.tier_index(text)
+            plans = [eng.plan_for(text, seed) for seed in range(60)]
+            by_tier[tier].append((sum(p.reasoning for p in plans) / 60, sum(p.final_answer == p.gold for p in plans) / 60))
+        mean = lambda rows, i: sum(r[i] for r in rows) / len(rows)
+        easy_len, med_len, hard_len = (mean(by_tier[i], 0) for i in range(3))
+        easy_acc, med_acc, hard_acc = (mean(by_tier[i], 1) for i in range(3))
+        self.assertLess(easy_len, med_len)
+        self.assertLess(med_len, hard_len)
+        self.assertGreater(easy_acc, med_acc)
+        self.assertGreater(med_acc, hard_acc)
+        self.assertAlmostEqual(easy_acc, 0.92, delta=0.06)
+        self.assertAlmostEqual(hard_acc, 0.12, delta=0.1)
+
+    def test_prompts_outside_the_key_still_get_a_tier(self):
+        eng = self.eng("behavior.difficulty=mixed")
+        self.assertIn(eng.tier_index("Compute 1 + 1."), {0, 1, 2})
+        plan = eng.plan_for("Compute 1 + 1.", 1, min_tokens=32)
+        self.assertGreaterEqual(plan.total, 32)
+
+    def test_report_lists_questions_by_tier(self):
+        from qed.sim import Key
+
+        key = Key({f"Question {i}": i for i in range(1, 11)})
+        key.indices = {f"Question {i}": i for i in range(1, 11)}
+        eng = Engine(SimConfig.from_sources(None, ["behavior.difficulty=mixed"]), "m", key, max_model_len=8192)
+        for text in key:
+            eng.plan_for(text, 1)
+        report = eng.report()["difficulty"]
+        self.assertEqual([t["name"] for t in report["tiers"]], ["easy", "medium", "hard"])
+        listed = [i for v in report["questions_by_tier"].values() for i in v]
+        self.assertEqual(sorted(listed), list(range(1, 11)))
+        self.assertEqual([len(v) for v in report["questions_by_tier"].values()], [4, 4, 2])
+
+
+class DescribeTests(unittest.TestCase):
+    def test_sim_config_subcommand_prints_resolved_values_and_implications(self):
+        from qed.sim import describe
+
+        out = io.StringIO()
+        with redirect_stdout(out):
+            describe.main(["--sim", "behavior.difficulty=mixed", "--sim", "decode_tps=60"])
+        text = out.getvalue()
+        self.assertIn("decode_tps: 60", text)
+        self.assertIn("name: hard", text)
+        self.assertIn("p_four_samples_all_wrong", text)
+        self.assertNotIn("&id", text)
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            describe.main(["--sim", "decode_tpz=1"])
+
+    def test_routed_from_the_main_cli(self):
+        with patch("qed.sim.describe.main") as describe:
+            cli.main(["sim-config", "--sim", "decode_tps=1"])
+            describe.assert_called_once_with(["--sim", "decode_tps=1"])
 
 
 class ModelTests(unittest.TestCase):
@@ -394,6 +515,7 @@ class EndToEndTests(unittest.TestCase):
         self.assertNotIn("vllm_command", config)
         self.assertEqual(meta["gpu"]["device"], "simulated")
         self.assertEqual(meta["simulation"]["decode_tps"], 2e5)
+        self.assertIn("difficulty", sim)
         self.assertGreaterEqual(sim["requests"], 4)
         self.assertGreater(sim["generation_tokens"], 0)
         self.assertNotIn("vllm.log", result["files"])
@@ -432,6 +554,15 @@ class EndToEndTests(unittest.TestCase):
         names = {m["name"] for row in engine_rows for m in row["metrics"]}
         self.assertIn("vllm:num_requests_running", names)
         self.assertIsNotNone(summary["performance"]["official_gpu"]["observed_peak_vram_mib"])
+
+    def test_mixed_difficulty_run_records_which_questions_were_hard(self):
+        result = self.run_cli("--sim", "behavior.difficulty=mixed")
+        self.check(result, "runner_core_v1")
+        tiers_seen = result["simulation.json"]["difficulty"]["questions_by_tier"]
+        self.assertEqual(set(tiers_seen), {"easy", "medium", "hard"})
+        self.assertEqual(sorted(i for v in tiers_seen.values() for i in v), [1, 2, 3, 4])
+        resolved = result["config.json"]["simulation"]["resolved"]["difficulty_tiers"]
+        self.assertEqual([t["name"] for t in resolved], ["easy", "medium", "hard"])
 
     def test_missing_answer_key_is_a_clear_error(self):
         from qed.sim import answer_key

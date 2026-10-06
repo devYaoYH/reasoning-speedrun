@@ -240,9 +240,25 @@ qed --simulate --version v1.6 --sim-config my_sim.yaml ...
 
 `--sim KEY=VALUE` (repeatable, dotted for `behavior.*`) overrides `--sim-config FILE`
 (YAML or JSON), which overrides the defaults; unknown keys are rejected with the list
-of valid ones. [`examples/sim_default.yaml`](../src/qed/examples/sim_default.yaml)
-lists every knob at its default. A run is also real wall-clock time: a 60-second
-simulated solve takes 60 seconds, against the real grader's 3 s toll.
+of valid ones. A run is also real wall-clock time: a 60-second simulated solve takes
+60 seconds, against the real grader's 3 s toll.
+
+**Start here.** Zero configuration works. These six knobs cover most experiments:
+
+| To change... | Use |
+| --- | --- |
+| How fast a stream decodes | `--sim decode_tps=60` |
+| How fast prompts are processed (TTFT) | `--sim prefill_tps=4000` |
+| How many requests the server runs at once | `--sim max_num_seqs=32` |
+| How accurate the model is | `--sim behavior.p_correct=0.5` |
+| How long it reasons | `--sim behavior.reasoning_median_tokens=9000` |
+| Whether questions differ in difficulty | `--sim behavior.difficulty=mixed` |
+
+Everything else (listed below, and in
+[`examples/sim_default.yaml`](../src/qed/examples/sim_default.yaml)) has a default you
+can ignore. `qed sim-config [--sim ...]` prints the fully resolved configuration and
+what it implies (mean accuracy, mean length, the chance all four samples of a question
+are wrong) without running anything.
 
 ### Serving knobs
 
@@ -265,7 +281,47 @@ simulated solve takes 60 seconds, against the real grader's 3 s toll.
 | `answer_at` | [0.45, 0.95] | Where the answer first appears, as a fraction of the reasoning |
 | `p_wrong_first` | 0.15 | Chance of a wrong tentative answer before the final one (the cost of optimism) |
 | `final_tokens` | 40 | Final response length after the reasoning |
-| `seed`, `answers` | 0, run's own key | Trajectory seed; JSONL of `problem`/`answer` to use instead |
+| `difficulty` | uniform | Per-question difficulty: `uniform`, `mixed`, or a list of tiers (below) |
+| `seed`, `answers` | 0, run's own key | Trajectory and tier-assignment seed; JSONL of `problem`/`answer` to use instead |
+
+### Question difficulty
+
+By default every sample is drawn independently from the flat `behavior.` knobs: a
+question's samples are unrelated, as if every question were equally hard. Real
+questions are not: a hard one is long and wrong across *all* its samples, which makes
+extra samples worth much less. `behavior.difficulty` adds that as a two-level model:
+each question gets a **tier** once, then its samples are drawn from the tier's
+parameters.
+
+- `uniform` (default): one tier equal to the flat knobs. A configuration that never
+  mentions difficulty behaves exactly as before.
+- `mixed`: easy / medium / hard (weights 0.4 / 0.4 / 0.2, accuracy 0.92 / 0.62 / 0.12,
+  median reasoning 2.4K / 6.2K / 13K tokens). Its mean accuracy (0.64) and mean length
+  match the uniform defaults, so the two differ only in *spread*: under `mixed` the
+  chance that all four samples of a question are wrong is 0.128, against 0.015 if
+  samples were independent.
+- A list, for full control. A tier needs a `weight` and may override any of
+  `p_correct`, `reasoning_median_tokens`, `reasoning_sigma`, `answer_at`,
+  `p_wrong_first`; whatever it leaves out comes from the flat knobs, and weights are
+  normalized:
+
+  ```yaml
+  behavior:
+    difficulty:
+      - {name: easy, weight: 3, p_correct: 0.9, reasoning_median_tokens: 2500}
+      - {name: hard, weight: 1, p_correct: 0.2, reasoning_median_tokens: 12000}
+  ```
+
+A tier belongs to the question, not the sample or the run: questions are ranked by a
+hash of `behavior.seed` and their text and cut into blocks sized by the weights (largest
+remainder), so 30 questions at 0.4/0.4/0.2 are exactly 12/12/6, a question keeps its
+tier whichever subset you run, and every policy sees the same hard questions.
+`simulation.json` lists which `problem_idx` fell in each tier. Tier values win over the
+flat knobs they override, so with `mixed` a flat `p_correct` has no effect. Check with
+`qed sim-config`. Hard questions can be effectively unsolvable, so a target near the
+number of questions may legitimately go unmet.
+
+### Trajectories
 
 Each request gets a deterministic trajectory from its request seed: filler
 reasoning with answers planted in the forms the real extractor recognises (a closed
