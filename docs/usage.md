@@ -1,16 +1,21 @@
 # Usage guide
 
-Everything below uses the installed `qed` command (equivalently
-`python -m qed`), which is the only CLI: `qed` runs an
-attempt, `qed view` browses saved attempts and
-`qed fetch-data` downloads the benchmark files. Run it from a working directory of your choice:
-attempts are written to `./attempts/` (override with `QED_HOME`). A GPU,
-model weights, a vLLM install and the `grader` extra are prerequisites; see
-[installation](../README.md#install).
+`qed` is the only command; run it from any working directory (attempts are saved to
+`./attempts/`, override with `QED_HOME`).
+
+| Command | Does | Needs |
+| --- | --- | --- |
+| `qed [flags]` | Runs a policy on a real GPU and saves an attempt | NVIDIA GPU, vLLM, model weights, a dataset |
+| `qed --simulate [flags]` | The same run against a mocked inference backend ([Simulation](#simulation)) | Nothing but the install |
+| `qed view [--attempts DIR]` | Browses saved attempts in a local web viewer | Nothing but the install |
+| `qed fetch-data --year Y` | Downloads the AIME benchmark files | `pip install -e '.[data]'`, network |
+| `qed sim-config [--sim ...]` | Prints a resolved `--simulate` configuration | Nothing |
+
+`python -m qed` is equivalent to `qed`. For installation see the [README](../README.md#install).
 
 ## Model weights and launch profiles
 
-The runner serves the model itself. Place weights in `MODELS_DIR/<org>/<name>/`
+(Real runs only; `--simulate` needs neither weights nor a profile.) The runner serves the model itself. Place weights in `MODELS_DIR/<org>/<name>/`
 (default `~/models`, `--models-dir`) and it resolves the launch profile
 `MODELS_DIR/<org>/<name>/<profile>` (`--model-profile`, default
 `vllm-flashinfer.yaml`). If that file does not exist, the **bundled** profile of the
@@ -30,7 +35,7 @@ elsewhere (e.g. a separate vLLM virtualenv).
 
 Explicit CLI flags override the selected preset. The default
 `presets/prompt_adherence.json` selects AIME 2025, 30×1, an 8K first request,
-16K subsequent requests, a four-request ceiling per question, and target18.
+16K subsequent requests, a four-request ceiling per question, and a target of 18.
 
 | Flag | Default | Controls |
 | --- | --- | --- |
@@ -54,6 +59,8 @@ Explicit CLI flags override the selected preset. The default
 | `--question-timeout` | 1800 | Timeout in seconds for each question group's generation and verification |
 | `--profile` | Off | Enable optional CPU, engine and GPU observations; retain buffered trace writes |
 | `--benchmark` | On through the preset | Disable optional profiling and buffer required traces until official timing ends |
+| `--version` | `v1` | Policy: `v1`, `v1.6`, `naive` ([policies](../src/qed/extensions/README.md)) |
+| `--simulate`, `--sim`, `--sim-config` | Off | Mock the inference backend; see [Simulation](#simulation) |
 
 For example, configure two initial samples with 4K each:
 
@@ -77,8 +84,8 @@ context. The reference profile uses 95% GPU memory and 64K total context.
 
 Use `--vllm-python`, `--vllm-binary`, and `--grader-python` for other Python/runtime
 locations; `--vllm-port` and `--grader-port` change service ports. Run
-`qed --help` for all options, or `qed --version v1.6
---help` for the v1.6 policy's flags; it has its own defaults and presets.
+`qed --help` for all options, or `qed --version v1.6 --help` (or `naive`) for that
+policy's flags; each has its own defaults and presets.
 
 ## Policy and timing
 
@@ -154,12 +161,12 @@ JSONL file with `problem_idx`, `problem` and `answer`:
 {"problem_idx":90,"problem":"Sum the integers from 1 through 10.","answer":55}
 ```
 
-Point a grader YAML at it (`source` is absolute or relative to the grader's
-directory) and launch with an integer-answer prompt:
+Point a grader YAML at it (a relative `source` is read relative to the YAML file) and
+launch with an integer-answer prompt:
 
 ```yaml
 dataset:
-  source: /absolute/path/questions.jsonl
+  source: questions.jsonl      # next to this YAML, or an absolute path
   format: jsonl
   idx_field: problem_idx
   problem_field: problem
@@ -169,7 +176,7 @@ dataset:
 
 ```bash
 qed \
-  --grader-config /absolute/path/grader.yaml \
+  --grader-config grader.yaml \
   --system-prompt-file src/qed/examples/integer_prompt.txt \
   --parallelism 2 --target-correct 2
 ```

@@ -1,6 +1,7 @@
 """Official timings, durable summaries and post-clock cleanup/trace flush."""
 
 import json
+from pathlib import Path
 import time
 from qed.lib.common import atomic_json, utc_now
 from qed.lib.metadata import build_metadata
@@ -140,4 +141,22 @@ async def finalize(
     atomic_json(output / "overhead.json", summary["overhead"])
     atomic_json(output / "summary.json", summary)
     print(json.dumps(summary, indent=2), flush=True)
+    print(headline(summary, output, bool(config.get("simulated"))), flush=True)
     return summary
+
+
+def headline(summary, output, simulated=False):
+    """The one line a person wants after a run: did it reach the target, and how fast."""
+    target, solved = summary["target_correct"], summary["solved"]
+    try:
+        where = output.relative_to(Path.cwd())
+    except ValueError:
+        where = output
+    if summary.get("target_reached") and summary.get("time_to_target_s") is not None:
+        result = f"reached {target} correct in {summary['time_to_target_s']:.1f} s"
+    elif summary.get("status") == "completed":
+        result = f"target not reached: {solved} of {target} correct when the budget ran out"
+    else:
+        result = f"run {summary.get('status')}: {solved} of {target} correct"
+    note = " (simulated backend: not a hardware measurement)" if simulated else ""
+    return f"\nqed: {result}{note}\n     saved to {where}; browse it with `qed view`"

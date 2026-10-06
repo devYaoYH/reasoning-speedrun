@@ -51,6 +51,10 @@ def make_handler(store: AttemptStore):
 
         def do_GET(self) -> None:
             path = unquote(urlparse(self.path).path)
+            if path == "/favicon.ico":
+                self.send_response(204)
+                self.end_headers()
+                return
             if path in ASSETS:
                 filename, content_type = ASSETS[path]
                 self.send_bytes((STATIC / filename).read_bytes(), content_type)

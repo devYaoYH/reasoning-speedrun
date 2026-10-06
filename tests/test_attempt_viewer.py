@@ -147,8 +147,8 @@ class AttemptViewerTests(unittest.TestCase):
             try:
                 conn = http.client.HTTPConnection('127.0.0.1', server.server_port)
                 with contextlib.closing(conn):
-                    cases = [('/', 200, b'AIME Canonical Attempts'),
-                             ('/results', 200, b'AIME Overall Results'),
+                    cases = [('/', 200, 'qed · Attempts'.encode()),
+                             ('/results', 200, 'qed · Overall results'.encode()),
                              ('/results/viewer.js', 200, b'/api/results'),
                              ('/api/results', 200, b'54.0'),
                              ('/attempts/viewer.js', 200, b'/api/attempts/'),

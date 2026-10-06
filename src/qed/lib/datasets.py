@@ -40,6 +40,28 @@ def manifest_path(value):
     return path.resolve() if path.is_absolute() else (workdir() / path).resolve()
 
 
+def grader_dataset(config_path):
+    """A grader YAML's ``dataset`` section with a local ``source`` made absolute.
+
+    A relative source is read relative to the YAML file itself; for older configs it may
+    instead be relative to the bundled grader's directory, which is tried second.
+    """
+    import yaml
+
+    from qed.lib.common import PACKAGE
+
+    path = manifest_path(config_path)
+    config = yaml.safe_load(path.read_text())
+    spec = config.get("dataset") or {}
+    source = spec.get("source")
+    if source and spec.get("format", "jsonl") != "hf" and not Path(source).expanduser().is_absolute():
+        beside = (path.parent / source).resolve()
+        spec["source"] = str(beside if beside.exists() else (PACKAGE / "grader" / source).resolve())
+    elif source and spec.get("format", "jsonl") != "hf":
+        spec["source"] = str(Path(source).expanduser())
+    return config
+
+
 def benchmark_paths(year=2025, manifest=None):
     if manifest is None:
         return aime.benchmark_paths(year)

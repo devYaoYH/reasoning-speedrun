@@ -36,8 +36,29 @@ function benchmarkRows(rows, year) {
   return rows.filter(r => (Object.hasOwn(r, 'benchmark_year') ? r.benchmark_year :
     r.metadata?.provenance?.dataset?.year ?? 2025) === Number(year));
 }
+// The page selects a dataset (AIME year or a custom dataset id); benchmarkRows stays the AIME-year filter.
+function benchmarkKey(r) {
+  const dataset = r.metadata?.provenance?.dataset;
+  // An explicit null year means a generic dataset; only a missing year defaults to AIME 2025.
+  const year = Object.hasOwn(r, 'benchmark_year') ? r.benchmark_year : (dataset && Object.hasOwn(dataset, 'year') ? dataset.year : 2025);
+  return year == null ? `dataset:${r.benchmark_id ?? r.metadata?.provenance?.dataset?.id ?? 'unknown'}` : `aime:${year}`;
+}
+const keyOfCluster = c => c.benchmark_year == null ? `dataset:${c.benchmark_id ?? 'unknown'}` : `aime:${c.benchmark_year}`;
+function benchmarkRowsByKey(rows, key) { return rows.filter(r => benchmarkKey(r) === key); }
+function benchmarkLabel(key, rows) {
+  const matching = rows.filter(r => benchmarkKey(r) === key);
+  const first = matching.find(r => r.benchmark_role) ?? matching[0] ?? {};
+  return key.startsWith('aime:') ? `AIME ${key.slice(5)}${first.benchmark_role ? ' · ' + first.benchmark_role : ''}` : key.slice(8);
+}
+function populateBenchmarkFilter() {
+  const select = $('#benchmark-year'), current = select.value;
+  const rows = results.attempts, keys = [...new Set(rows.map(benchmarkKey))];
+  const newest = [...rows].sort((a, b) => Date.parse(b.attempt_started_at_utc ?? b.started_at_utc ?? 0) - Date.parse(a.attempt_started_at_utc ?? a.started_at_utc ?? 0))[0];
+  select.innerHTML = keys.map(k => `<option value="${esc(k)}">${esc(benchmarkLabel(k, rows))}</option>`).join('');
+  select.value = keys.includes(current) ? current : (newest ? benchmarkKey(newest) : (keys[0] ?? ''));
+}
 function clusterRows(rows, id) { return id==='all'?rows:rows.filter(r=>r.cluster?.family_id===id); }
-function selectedRows() { return clusterRows(benchmarkRows(results.attempts, $('#benchmark-year').value), $('#attempt-cluster').value); }
+function selectedRows() { return clusterRows(benchmarkRowsByKey(results.attempts, $('#benchmark-year').value), $('#attempt-cluster').value); }
 function attemptHistory(rows, numberingRows=rows) {
   const measured=numberingRows.filter(r=>r.time_to_18_s!=null && Number.isFinite(r.time_to_18_s) && r.time_to_18_s>=0)
     .map(r=>({...r,start_ms:Date.parse(r.attempt_started_at_utc??r.started_at_utc)}))
@@ -151,7 +172,7 @@ function controlsTable(rows){
 }
 function populateClusterFilter() {
   const select=$('#attempt-cluster'),current=select.value;
-  const clusters=(results.clusters??[]).filter(c=>c.benchmark_year===Number($('#benchmark-year').value));
+  const clusters=(results.clusters??[]).filter(c=>keyOfCluster(c)===$('#benchmark-year').value);
   select.innerHTML='<option value="all">All configuration families</option>'+clusters.map(c=>`<option value="${esc(c.id)}">${esc(c.label)} · ${c.count} attempt${c.count===1?'':'s'}</option>`).join('');
   select.value=clusters.some(c=>c.id===current)?current:'all';
   return clusters;
@@ -178,8 +199,9 @@ function renderClusters(clusters, rows) {
   $('#cluster-summary').innerHTML=(repeated.length?clusterTable(repeated,rows):'')+(single.length?(selected==='all'?`<details class="singleton-clusters"><summary>${single.length} single-attempt configurations</summary>${clusterTable(single,rows)}</details>`:clusterTable(single,rows)):'')||'<p class="detail-note">No valid configurations available for clustering.</p>';
 }
 function renderResults(){
+    populateBenchmarkFilter();
     const clusters=populateClusterFilter();
-    const numberingRows=benchmarkRows(results.attempts,$('#benchmark-year').value);
+    const numberingRows=benchmarkRowsByKey(results.attempts,$('#benchmark-year').value);
     const rows=selectedRows(),ranked=rows.filter(r=>r.time_to_18_s!=null).sort((a,b)=>a.time_to_18_s-b.time_to_18_s),best=ranked[0];
     $('#inventory').textContent=`${rows.length} saved attempts · ${ranked.length} measured targets reached`;
     $('#notice').textContent=results.warnings.join(' · ');$('#notice').hidden=!results.warnings.length;

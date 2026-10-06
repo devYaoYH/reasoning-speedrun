@@ -1,9 +1,10 @@
 /**
- * Inspect canonical src.attempt outputs: oracle outcomes, saved trajectories,
- * continuation segments, provenance, and sampled GPU telemetry. Use via
- * src.viewer_server; refresh rereads local files without running experiments.
+ * Inspect saved qed attempts: oracle outcomes, saved trajectories, continuation
+ * segments, provenance, and sampled GPU telemetry. Served by `qed view`; refresh
+ * rereads local files without running experiments.
  */
 const $ = selector => document.querySelector(selector);
+const datasetLabel = item => (item.benchmark_year ? `AIME ${item.benchmark_year}` : (item.benchmark_id ?? 'custom dataset'));
 const state = { id: null, overview: null, question: null, rollout: null, detail: null,
   trajectory: null, tab: 'reasoning', filter: 'all', search: '', sequence: 0, detailSequence: 0, busy: false };
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -48,7 +49,7 @@ async function refresh(requested = state.id) {
     for (const item of inventory.attempts) {
       const option = document.createElement('option');
       option.value = item.id;
-      option.textContent = `${item.id}${item.simulated ? ' · SIMULATED' : ''} · AIME ${item.benchmark_year ?? 2025} · ${item.model || 'unknown model'} · ${item.status} · ${number(item.solved)}/${number(item.questions)} solved`;
+      option.textContent = `${item.id}${item.simulated ? ' · SIMULATED' : ''} · ${datasetLabel(item)} · ${item.model || 'unknown model'} · ${item.status} · ${number(item.solved)}/${number(item.questions)} solved`;
       select.append(option);
     }
     $('#empty').hidden = inventory.attempts.length > 0;
@@ -84,7 +85,7 @@ function renderOverview() {
   const usage = rollouts.filter(r => r.usage?.completion_tokens != null);
   const solved = summary?.solved ?? questions.filter(q => q.status === 'solved').length;
   const queries = questions.filter(q => q.verification_count != null);
-  $('#model-name').textContent = `AIME ${state.overview.attempt.benchmark_year ?? 2025} · ${config.model || 'Unknown model'}${config.simulated ? ' · simulated backend (not a hardware measurement)' : ''}`;
+  $('#model-name').textContent = `${datasetLabel(state.overview.attempt)} · ${config.model || 'Unknown model'}${config.simulated ? ' · simulated backend (not a hardware measurement)' : ''}`;
   $('#attempt-date').textContent = attempt.started_at_utc ? new Date(attempt.started_at_utc).toLocaleString() : 'No official start recorded';
   $('#attempt-status').textContent = `${attempt.status} · ${summary?.strategy || config.strategy || 'parallel'} strategy`;
   $('#overview-title').textContent = `${solved} of ${questions.length} verified`;

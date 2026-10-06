@@ -526,7 +526,8 @@ class EndToEndTests(unittest.TestCase):
     """The real runner, scheduler, grader process and traces against the simulated backend."""
 
     def run_cli(self, *extra, expect_time=True):
-        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()), patch.dict(os.environ, {"QED_HOME": tmp}), \
+        self.stdout = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(self.stdout), patch.dict(os.environ, {"QED_HOME": tmp}), \
                 patch("qed.lib.setup.assert_gpu_idle", side_effect=AssertionError("must not touch a GPU")):
             cli.main([
                 "--simulate", "--grader-config", str(EXAMPLES / "synthetic_grader.yaml"),
@@ -551,12 +552,18 @@ class EndToEndTests(unittest.TestCase):
         self.assertEqual(config["simulation"]["resolved"]["max_model_len"], 65536)
         self.assertNotIn("vllm_command", config)
         self.assertEqual(meta["gpu"]["device"], "simulated")
+        self.assertTrue(meta["label"].endswith("· simulated"), meta["label"])  # shown on the results page
         self.assertEqual(meta["simulation"]["decode_tps"], 2e5)
         self.assertIn("difficulty", sim)
         self.assertGreaterEqual(sim["requests"], 4)
         self.assertGreater(sim["generation_tokens"], 0)
         self.assertNotIn("vllm.log", result["files"])
         self.assertTrue(result["listed"]["attempts"][0]["simulated"])
+        # The last thing a person sees is the verdict, not the JSON dump above it.
+        last = self.stdout.getvalue().rstrip().splitlines()
+        self.assertIn(f"reached {summary['target_correct']} correct in {summary['time_to_target_s']:.1f} s", "\n".join(last[-3:]))
+        self.assertTrue(last[-1].strip().endswith("browse it with `qed view`"), last[-1])
+        self.assertIn("simulated backend", "\n".join(last[-2:]))
 
     def test_canonical_v1_with_continuations_against_the_simulator(self):
         # Solving all four needs answers that appear after a tiny first request: exact-ID continuations.
@@ -600,6 +607,31 @@ class EndToEndTests(unittest.TestCase):
         self.assertEqual(sorted(i for v in tiers_seen.values() for i in v), [1, 2, 3, 4])
         resolved = result["config.json"]["simulation"]["resolved"]["difficulty_tiers"]
         self.assertEqual([t["name"] for t in resolved], ["easy", "medium", "hard"])
+
+    def test_relative_dataset_source_resolves_against_the_config_file(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as home, redirect_stdout(io.StringIO()), \
+                patch.dict(os.environ, {"QED_HOME": home}):
+            shutil_copy = __import__("shutil").copy
+            shutil_copy(EXAMPLES / "synthetic_30.jsonl", Path(tmp) / "my_questions.jsonl")
+            (Path(tmp) / "grader.yaml").write_text(
+                "dataset:\n  source: my_questions.jsonl\n  format: jsonl\n  idx_field: problem_idx\n"
+                "  problem_field: problem\n  gold_field: answer\n  id: mine\ncost_c: 3.0\nhost: 127.0.0.1\nport: 8077\n")
+            cli.main(["--simulate", "--grader-config", str(Path(tmp) / "grader.yaml"),
+                      "--system-prompt-file", str(EXAMPLES / "integer_prompt.txt"), "--questions", "1", "2",
+                      "--target-correct", "1", "--grader-cost", "0.05", "--sim", "decode_tps=2e5",
+                      "--sim", "behavior.reasoning_median_tokens=800", "--sim", "behavior.p_correct=1"])
+            (folder,) = sorted(Path(home, "attempts").iterdir())
+            summary = json.loads((folder / "summary.json").read_text())
+            copied = (folder / "grader_config.yaml").read_text()
+        self.assertTrue(summary["target_reached"])
+        self.assertIn(str(Path(tmp).resolve() / "my_questions.jsonl"), copied)  # recorded as an absolute path
+
+    def test_bundled_configs_with_grader_dir_relative_sources_still_resolve(self):
+        from qed.lib.datasets import grader_dataset
+
+        for name in ("integer_grader.yaml", "synthetic_grader.yaml"):
+            source = Path(grader_dataset(EXAMPLES / name)["dataset"]["source"])
+            self.assertTrue(source.is_absolute() and source.is_file(), (name, source))
 
     def test_missing_answer_key_is_a_clear_error(self):
         from qed.sim import answer_key

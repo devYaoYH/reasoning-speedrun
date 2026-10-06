@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AIME Overall Results</title>
+  <title>qed · Overall results</title>
   <link rel="stylesheet" href="/shared.css">
   <link rel="stylesheet" href="/attempts/viewer.css">
   <link rel="stylesheet" href="/results/viewer.css">
@@ -12,11 +12,11 @@
 <body>
   <header class="masthead">
     <div class="masthead-inner">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><div><div class="eyebrow light">AIME · experiment comparisons</div><h1>Overall <em>Results</em></h1></div></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><div><div class="eyebrow light">Experiment comparisons</div><h1>Overall <em>Results</em></h1></div></div>
       <nav aria-label="Viewers"><span aria-current="page">Overall results</span><a href="#clusters-title">Clusters</a><a href="/">Attempts</a></nav>
     </div>
     <div class="masthead-rule"></div>
-    <div class="masthead-inner attempt-controls"><label for="benchmark-year">Benchmark</label><select id="benchmark-year"><option value="2024">AIME 2024 · prewarming</option><option value="2025" selected>AIME 2025 · development</option><option value="2026">AIME 2026 · generalization</option></select><label for="attempt-cluster">Cluster</label><select id="attempt-cluster"><option value="all">All configuration families</option></select><span id="inventory">Loading saved attempts…</span><button id="refresh" type="button">Refresh results</button></div>
+    <div class="masthead-inner attempt-controls"><label for="benchmark-year">Benchmark</label><select id="benchmark-year"></select><label for="attempt-cluster">Cluster</label><select id="attempt-cluster"><option value="all">All configuration families</option></select><span id="inventory">Loading saved attempts…</span><button id="refresh" type="button">Refresh results</button></div>
   </header>
   <main class="page-shell">
     <div id="error" class="error-banner" role="alert" hidden></div>
@@ -30,7 +30,7 @@
       <section class="timeline-card" aria-labelledby="curves-title"><div class="section-heading"><div><div class="eyebrow">All recorded positive verdicts</div><h2 id="curves-title">Progress toward 18</h2></div><label>Time window <select id="curve-window" aria-label="Progress time window"><option value="all">All recorded time</option><option value="120">First 120 seconds</option></select></label></div><div class="plot-scroll" id="progress-plot"></div><div class="model-legend" id="progress-model-legend" aria-label="Model colors"></div><div id="curve-legend" class="curve-legend"></div></section>
       <section class="timeline-card" aria-labelledby="controls-title"><div class="section-heading"><div><div class="eyebrow">All attempts · including unmet targets</div><h2 id="controls-title">Interventions &amp; controls</h2></div></div><div class="table-scroll"><table class="results-table"><thead><tr><th>Attempt / model</th><th>Intervention</th><th>Time to 18</th><th>Verified</th><th>Questions × samples</th><th>VRAM envelope</th><th>Recorded controls</th></tr></thead><tbody id="attempt-rows"></tbody></table></div></section>
     </div>
-    <footer>Saved canonical attempts · 54s minimum serial grader toll · Read-only local viewer</footer>
+    <footer>Saved qed attempts · 54s minimum serial grader toll (18 × 3 s) · Read-only local viewer</footer>
   </main>
 </body>
 </html>

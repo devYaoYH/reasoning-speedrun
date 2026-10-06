@@ -98,7 +98,7 @@ assert.deepEqual(initialColors,targetColors,'Colors must match across plots and 
 const key=vm.runInContext('modelLegend(colorRows)',context);
 assert.equal((key.match(/class="model-key"/g)||[]).length,4);
 assert.match(key,/VibeThinker 3B · BF16/);assert.match(key,/VibeThinker 3B · NVFP4/);
-const elements={'#benchmark-year':{value:'2025'},'#attempt-cluster':{value:'all'},'#curve-window':{value:'all'},
+const elements={'#benchmark-year':{value:'aime:2025'},'#attempt-cluster':{value:'all'},'#curve-window':{value:'all'},
   '#progress-plot':{},'#progress-model-legend':{},'#curve-legend':{}};
 context.document.querySelector=selector=>elements[selector];
 vm.runInContext('results={attempts:colorRows};renderProgress()',context);
@@ -125,3 +125,17 @@ assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('benchmarkRows(warmup
 context.transferRows=[{id:'legacy'}, {id:'aime',benchmark_year:2025},
   {id:'apex',benchmark_year:null,metadata:{provenance:{dataset:{id:'apex_shortlist',year:null}}}}];
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("benchmarkRows(transferRows,2025).map(r=>r.id)",context))),['legacy','aime']);
+
+// The page picks a dataset by key: an AIME year or a custom dataset id.
+context.keyRows=[{id:'legacy'},{id:'aime',benchmark_year:2025,benchmark_role:'development'},
+  {id:'synth',benchmark_year:null,benchmark_id:'synthetic_30'},{id:'synth2',benchmark_year:null,benchmark_id:'synthetic_30'},
+  {id:'other',benchmark_year:null,benchmark_id:'my_set'},{id:'fallback',metadata:{provenance:{dataset:{id:'x',year:null}}}}];
+const keys=JSON.parse(JSON.stringify(vm.runInContext('keyRows.map(benchmarkKey)',context)));
+assert.deepEqual(keys,['aime:2025','aime:2025','dataset:synthetic_30','dataset:synthetic_30','dataset:my_set','dataset:x']);
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("benchmarkRowsByKey(keyRows,'dataset:synthetic_30').map(r=>r.id)",context))),['synth','synth2']);
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext("benchmarkRowsByKey(keyRows,'aime:2025').map(r=>r.id)",context))),['legacy','aime']);
+assert.equal(vm.runInContext("benchmarkLabel('aime:2025',keyRows)",context),'AIME 2025 · development');
+assert.equal(vm.runInContext("benchmarkLabel('dataset:synthetic_30',keyRows)",context),'synthetic_30');
+assert.equal(vm.runInContext("keyOfCluster({benchmark_year:null,benchmark_id:'my_set'})",context),'dataset:my_set');
+assert.equal(vm.runInContext("keyOfCluster({benchmark_year:2025})",context),'aime:2025');
+console.log('Benchmark selector checks passed: AIME years and custom datasets stay separate.');

@@ -11,6 +11,7 @@ from qed.lib.common import PACKAGE, atomic_json
 from qed.lib.datasets import (
     benchmark_paths,
     dataset_provenance,
+    grader_dataset,
     load_questions,
     manifest_path,
 )
@@ -90,9 +91,7 @@ async def prepare_grader(args, client, services, profiler, output, config, probl
     grader = None
     if not args.reuse_grader:
         if args.grader_config:
-            grader_config = yaml.safe_load(
-                manifest_path(args.grader_config).read_text()
-            )
+            grader_config = grader_dataset(args.grader_config)
         else:
             grader_config = {
                 "dataset": {

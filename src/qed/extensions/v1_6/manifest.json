@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_v1_6",
-  "canonical_manifest_sha256": "876600c92fe165e612ba392b74cf43ce5ed59d42044f3ec6653b7da0f9539a37",
+  "canonical_manifest_sha256": "c66ae37befd869ea1cee7dd0431f73e1798da7060cece28906219addf230438d",
   "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
   "previous_source_commit": "51611b5e",
-  "change_reason": "Friendly errors, best-effort metadata on failed runs, onboarding polish",
+  "change_reason": "Grader YAML sources resolve against the YAML file",
   "sha256": {
     "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
     "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
@@ -14,7 +14,7 @@
     "extensions/v1_6/integrity.py": "36091e44e5d97d38492c9dc2c25af8b785198758de0ad3b9f9a9b0ec5cafea6e",
     "extensions/v1_6/policy.json": "0aa62e8cf2282097680d423b0f5f0dbeaeab2c319b91d8ce3592ddeffed7e9c7",
     "extensions/v1_6/policy.py": "32e4b2a045ff8cc096cbb4a1daf8b348a6d6c73936fe4716e8356f6789faaccc",
-    "lib/policy_runtime.py": "f8c9196e21629f749347cd664ea5e545180e80aacbef1bab5984085c8380311f",
+    "lib/policy_runtime.py": "9877f80fdc810c998a09c925f445565e9490945cb81027363c39b7c5b6c8ed0f",
     "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml": "bc716a4d4a26df0eacc1891202840e4869f39cf31a544dfc7cc8c942c5405c0a"
   }
 }

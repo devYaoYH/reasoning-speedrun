@@ -11,7 +11,7 @@ import time
 import httpx
 
 from qed.lib.common import PACKAGE, atomic_json, utc_now, workdir
-from qed.lib.summary import ttft
+from qed.lib.summary import headline, ttft
 from qed.lib.metrics import grader_timeline
 from qed.lib.gpu import GPUSampler
 from qed.lib.metrics import AttemptProfiler
@@ -326,4 +326,5 @@ async def finalize_policy(
     atomic_json(output / "overhead.json", summary["overhead"])
     atomic_json(output / "summary.json", summary)
     print(json.dumps(summary, indent=2), flush=True)
+    print(headline(summary, output, bool(config.get("simulated"))), flush=True)
     return summary

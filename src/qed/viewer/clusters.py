@@ -116,6 +116,7 @@ def summarize_clusters(rows):
                 varying.append({'variable': key, 'values': list(values.values())})
         result.append({'id': family_id, 'label': members[0]['cluster']['label'],
                        'benchmark_year': members[0].get('benchmark_year', 2025),
+                       'benchmark_id': members[0].get('benchmark_id'),
                        'attempt_ids': [r['id'] for r in members], 'count': len(members),
                        'statuses': dict(Counter(r['status'] for r in members)),
                        'time_to_18': measured_stats(members, 'time_to_18_s'),

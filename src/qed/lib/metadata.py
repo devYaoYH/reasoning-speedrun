@@ -144,7 +144,7 @@ def build_metadata(folder, config=None):
         "$schema": "https://github.com/devYaoYH/reasoning-speedrun/blob/main/src/qed/metadata.schema.json",
         "schema_version": 1,
         "attempt_id": folder.name,
-        "label": model or folder.name,
+        "label": (f"{model} · simulated" if config.get("simulated") and model else model or folder.name),
         "intervention": {
             "label": "Not annotated",
             "reference_attempt_id": None,

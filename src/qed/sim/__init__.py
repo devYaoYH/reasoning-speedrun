@@ -12,6 +12,7 @@ import httpx
 import yaml
 
 from qed.lib import aime
+from qed.lib.datasets import grader_dataset
 from qed.lib.common import PACKAGE, workdir
 from qed.sim.config import SimConfig, expected
 from qed.sim.engine import Engine
@@ -45,9 +46,7 @@ def answer_key(args, config):
     if config.behavior.answers:
         return read_key(Path(config.behavior.answers).expanduser())
     if args.grader_config:
-        spec = yaml.safe_load(Path(args.grader_config).expanduser().read_text())["dataset"]
-        source = Path(spec["source"]).expanduser()
-        return read_key(source if source.is_absolute() else PACKAGE / "grader" / source)
+        return read_key(grader_dataset(args.grader_config)["dataset"]["source"])
     if args.dataset_manifest:
         manifest = Path(args.dataset_manifest).expanduser()
         manifest = manifest if manifest.is_absolute() else workdir() / manifest

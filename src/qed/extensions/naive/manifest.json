@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_naive",
-  "canonical_manifest_sha256": "876600c92fe165e612ba392b74cf43ce5ed59d42044f3ec6653b7da0f9539a37",
+  "canonical_manifest_sha256": "c66ae37befd869ea1cee7dd0431f73e1798da7060cece28906219addf230438d",
   "policy": "Complete fan-out of every sample of every question at once; candidates only from the final box of naturally ended responses; no continuations, rounds or barriers",
-  "change_reason": "Friendly errors, best-effort metadata on failed runs, onboarding polish",
+  "change_reason": "Grader YAML sources resolve against the YAML file",
   "sha256": {
     "extensions/naive/__init__.py": "92b14d300c49dc3ee02cb1ad53dcf5f92c17b7b0941026aa35b9a97d4500c1a1",
     "extensions/naive/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
     "extensions/naive/cli.py": "3952f85fc89738395d13b6c7f2c38c69e25d8ae1dd36729cf8ef8879215949d7",
     "extensions/naive/integrity.py": "ff1874897c1b866ff2b16472d7849a78fa1b62167c0c81ffe9483d9abf3324aa",
     "extensions/naive/policy.py": "231a23442ad2ee32ac4464eee246ffc53b00e5905c34b63f2c4f31d234165c1d",
-    "lib/policy_runtime.py": "f8c9196e21629f749347cd664ea5e545180e80aacbef1bab5984085c8380311f"
+    "lib/policy_runtime.py": "9877f80fdc810c998a09c925f445565e9490945cb81027363c39b7c5b6c8ed0f"
   }
 }
