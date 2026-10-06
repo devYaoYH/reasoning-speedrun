@@ -93,13 +93,16 @@ def make_handler(store: AttemptStore):
 
 
 def main(argv=None) -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(prog="qed view", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--attempts", type=Path, default=workdir() / "attempts", help="Directory of attempt folders")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args(argv)
     if not args.attempts.is_dir():
-        parser.error(f"Attempts directory not found: {args.attempts}")
+        parser.error(
+            f"Attempts directory not found: {args.attempts}. Runs are saved under ./attempts; "
+            "to look around first, try `qed view --attempts examples/attempts`."
+        )
     server = ThreadingHTTPServer((args.host, args.port), make_handler(AttemptStore(args.attempts.resolve())))
     print(f"Attempt viewer: http://{args.host}:{args.port} (attempts: {args.attempts})", flush=True)
     try:

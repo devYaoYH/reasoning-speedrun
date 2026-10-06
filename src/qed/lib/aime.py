@@ -57,9 +57,10 @@ def sha256(path):
 def read_rows(path):
     if not path.is_file():
         raise FileNotFoundError(
-            f"{path} is missing; fetch the pinned dataset with "
-            "`qed fetch-data --year YEAR` "
-            "(requires `pip install -e '.[data]'`)"
+            f"{path} is missing. Fetch the pinned dataset with `qed fetch-data --year YEAR` "
+            "(needs `pip install -e '.[data]'`), or try qed without data or a GPU: "
+            f"`qed --simulate --grader-config {PACKAGE / 'examples/synthetic_grader.yaml'} "
+            f"--system-prompt-file {PACKAGE / 'examples/integer_prompt.txt'}`"
         )
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     if [r["problem_idx"] for r in rows] != list(range(1, 31)):

@@ -12,6 +12,7 @@ import sys
 from qed.config import parse_args as parse_config
 from qed.integrity import verify_core
 from qed.lib.common import PACKAGE
+from qed.lib.errors import friendly
 from qed.lib.entrypoints import CANONICAL, EXTENSIONS, launch_extension
 from qed.lib.services import attempt_lock
 from qed.run import RUNNER_ID, run
@@ -74,6 +75,7 @@ SUBCOMMANDS = {
 }
 
 
+@friendly
 def main(argv=None):
     values = sys.argv[1:] if argv is None else argv
     if values and values[0] in SUBCOMMANDS:

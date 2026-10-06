@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_v1_6",
-  "canonical_manifest_sha256": "474cbeb391de248e3d1ed55f326b38eeaf8f42fbc7b9fc93b7b50af785d42ea2",
+  "canonical_manifest_sha256": "876600c92fe165e612ba392b74cf43ce5ed59d42044f3ec6653b7da0f9539a37",
   "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
   "previous_source_commit": "51611b5e",
-  "change_reason": "Difficulty controls answer timing, not accuracy",
+  "change_reason": "Friendly errors, best-effort metadata on failed runs, onboarding polish",
   "sha256": {
     "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
     "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
     "extensions/v1_6/allocation.py": "476fa14085e7092d24f5ec042ac5e05c859a88eabc945ba4a1f6e39377ec2514",
     "extensions/v1_6/budgets.py": "c2dd948b785b08cd558b1d86d1f8072f31cec17bf6261d7d789bef49b458a1c6",
-    "extensions/v1_6/cli.py": "6830f291e80524055d37928ebbaaa0fd725fcdc9ba082d55115b65eea3f5a44a",
+    "extensions/v1_6/cli.py": "500e8b4dccad660810984b8359f3f744e4d645908745e05f1ec91f4c2da1e70b",
     "extensions/v1_6/integrity.py": "36091e44e5d97d38492c9dc2c25af8b785198758de0ad3b9f9a9b0ec5cafea6e",
     "extensions/v1_6/policy.json": "0aa62e8cf2282097680d423b0f5f0dbeaeab2c319b91d8ce3592ddeffed7e9c7",
     "extensions/v1_6/policy.py": "32e4b2a045ff8cc096cbb4a1daf8b348a6d6c73936fe4716e8356f6789faaccc",
-    "lib/policy_runtime.py": "1b48ce4f329ca0b8231e2870a06d1a8b1f8bc8281fa281e021df81df70512c24",
+    "lib/policy_runtime.py": "f8c9196e21629f749347cd664ea5e545180e80aacbef1bab5984085c8380311f",
     "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml": "bc716a4d4a26df0eacc1891202840e4869f39cf31a544dfc7cc8c942c5405c0a"
   }
 }

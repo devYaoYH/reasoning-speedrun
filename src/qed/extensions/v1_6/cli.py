@@ -68,7 +68,7 @@ def parse_args(argv=None):
     if "--help" in remaining or "-h" in remaining:
         print(__doc__ + "\n" + parser.format_help())
         print(
-            "Pool slots default to selected question count. Shared service, dataset, sampling, prompt and benchmark flags are described by python -m runner --help. Its round and request-cap controls do not apply here."
+            "Pool slots default to selected question count. Shared service, dataset, sampling, prompt and benchmark flags are described by `qed --help`. Its round and request-cap controls do not apply here."
         )
         raise SystemExit(0)
     args = canonical_args(["--model-profile", options.model_profile] + remaining)

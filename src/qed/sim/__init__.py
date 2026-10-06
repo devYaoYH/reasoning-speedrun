@@ -58,8 +58,9 @@ def answer_key(args, config):
     if not path.is_file():
         raise FileNotFoundError(
             f"{path} is missing: the simulated model needs an answer key. Run "
-            f"`qed fetch-data --year {args.benchmark_year}`, or use your own questions "
-            "(--grader-config) or --sim behavior.answers=FILE"
+            f"`qed fetch-data --year {args.benchmark_year}`, or use the bundled synthetic questions "
+            f"(--grader-config {PACKAGE / 'examples/synthetic_grader.yaml'}), your own questions, "
+            "or --sim behavior.answers=FILE"
         )
     return read_key(path)
 

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import yaml
 from qed.lib.common import PACKAGE, atomic_json
 from qed.lib.datasets import (
@@ -171,6 +172,11 @@ async def prepare_inference(
         server = None  # the simulated backend answers in process; no GPU or vLLM
     elif not args.reuse_server:
         assert_gpu_idle(args.gpu_device)
+        if not (shutil.which(args.vllm_binary) or Path(args.vllm_binary).is_file()):
+            raise RuntimeError(
+                f"vLLM executable not found: {args.vllm_binary}. Install vLLM in this environment, "
+                "or pass --vllm-binary and --vllm-python (or --simulate to run without it)."
+            )
         gpu_warmup = services.launch(
             [
                 args.vllm_python,

@@ -106,7 +106,7 @@ def fetch(year, client):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(prog="qed fetch-data", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--year", type=int, choices=YEARS, action="append", help="Repeatable; default 2025")
     args = parser.parse_args(argv)
     try:
@@ -115,7 +115,11 @@ def main(argv=None):
         sys.exit("pyarrow is required: pip install -e '.[data]'")
     with httpx.Client(timeout=60, follow_redirects=True) as client:
         for year in args.year or [2025]:
-            problems, prompt_text, grader_text = fetch(year, client)
+            try:
+                problems, prompt_text, grader_text = fetch(year, client)
+            except httpx.HTTPError as exc:
+                sys.exit(f"qed fetch-data: could not download AIME {year} from huggingface.co ({type(exc).__name__}: {exc}). "
+                         "It needs network access to huggingface.co; nothing was written.")
             prompts, grader, _ = benchmark_paths(year)
             for path, content in ((prompts, prompt_text), (grader, grader_text)):
                 path.parent.mkdir(parents=True, exist_ok=True)

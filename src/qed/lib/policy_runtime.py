@@ -311,7 +311,12 @@ async def finalize_policy(
             "scope"
         ] = "Client trace flush after official timing; excluded from time to target and official latency"
         atomic_json(output / "summary.json", summary)
-        atomic_json(output / "metadata.json", metadata_builder(output, config))
+        try:
+            atomic_json(output / "metadata.json", metadata_builder(output, config))
+        except Exception as exc:
+            if summary.get("status") == "completed":
+                raise
+            summary["metadata_error"] = f"{type(exc).__name__}: {exc}"
     summary["grader_timeline"] = grader_timeline(
         output / "grader_audit.jsonl",
         config.get("official_started_at_utc"),

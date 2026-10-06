@@ -39,71 +39,73 @@ hardware before quoting numbers.
 
 ## Install
 
-Not distributed on PyPI (the `qed` name there belongs to something else): clone
-the repository. Linux, Python 3.11+, an NVIDIA GPU, and [vLLM](https://docs.vllm.ai)
-installed in the same environment (qed launches `vllm serve` itself):
+qed isn't on PyPI (the `qed` name there belongs to something else), so clone the repo.
+Python 3.11+ is all you need to browse results and to **simulate** runs; only real runs
+need an NVIDIA GPU, Linux and [vLLM](https://docs.vllm.ai) in the same environment (qed
+launches `vllm serve` itself).
 
 ```bash
 git clone https://github.com/devYaoYH/reasoning-speedrun && cd reasoning-speedrun
-pip install -e '.[grader]'     # runner + bundled grader dependencies
-pip install -e '.[data]'       # add: only for `qed fetch-data`
-pip install -e '.[analysis]'   # add: only for offline plots
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e '.[grader,data,analysis]'   # runner + grader deps, dataset download, plots
 ```
 
 ## Quickstart
 
-```bash
-# 1. Benchmark data is licensed upstream (CC BY-NC-SA 4.0), so it is fetched, not bundled.
-qed fetch-data --year 2025
-
-# 2. Weights: put the model under ~/models/<org>/<name>/ (see docs/usage.md). Launch
-#    profiles for the reference models ship with the package.
-nvidia-smi                                    # the runner refuses an occupied GPU
-qed --seed 20261011            # canonical v1: 30x1, 8K first request, target 18
-
-# 3. Look at the result.
-qed view                       # http://127.0.0.1:8765, reads ./attempts
-```
-
-The runner warms the engine, launches vLLM and a fresh grader, starts the clock,
-and writes `attempts/<timestamp>/` (`summary.json` has `target_reached` and
-`time_to_target_s`). Try the viewer first without a GPU on the bundled example:
+**1. Look around (no GPU, no data).** The repo ships one recorded real run (18 correct
+in 62 s on an A100) so you can see what qed produces:
 
 ```bash
-qed view --attempts examples/attempts
+qed view --attempts examples/attempts      # then open http://127.0.0.1:8765
 ```
 
-### Try a policy without a GPU
+*Attempts* shows one run's trajectories, grader verdicts and request timeline;
+*Overall results* compares runs by time to target.
 
-`--simulate` swaps vLLM and the GPU for an in-process mock whose decode speed,
-prefill speed, sequence cap, prefix cache, and the model's accuracy, reasoning
-length and question difficulty are knobs. The grader, scheduler and traces are real; no data download is
-needed (30 synthetic questions ship in `src/qed/examples/`):
+**2. Run a policy in simulation (no GPU, no data).** `--simulate` replaces vLLM and the
+GPU with an in-process mock; the scheduler, extraction, grader and traces are real. It
+takes real wall-clock time (about two minutes here) and runs on 30 synthetic questions
+that ship with the repo:
 
 ```bash
-qed --simulate --version naive --grader-config src/qed/examples/synthetic_grader.yaml \
-    --system-prompt-file src/qed/examples/integer_prompt.txt --sim decode_tps=60
+qed --simulate --grader-config src/qed/examples/synthetic_grader.yaml \
+    --system-prompt-file src/qed/examples/integer_prompt.txt          # canonical v1
+qed view                                   # your run is now in ./attempts
 ```
 
-Simulated attempts are tagged and never mixed with hardware results; see
-[Simulation](docs/usage.md#simulation) for the knobs and the caveats (notably:
-load-independent decode rates).
+Compare policies by changing `--version` (`v1`, `v1.6`, `naive`) and the serving model
+by changing knobs, e.g. `--sim decode_tps=60 --sim max_num_seqs=32`. `qed sim-config`
+shows every knob and what it implies. Simulated runs are labelled and never mixed with
+hardware results; see [Simulation](docs/usage.md#simulation) for the knobs and caveats
+(notably: decode speed does not slow down under load).
 
-### Your own questions
-
-Give the grader a JSONL file of `problem_idx`, `problem`, `answer` and point a
-grader YAML at it; the solver only ever sees indices and statements.
+**3. Run on a real GPU.**
 
 ```bash
-qed \
-  --grader-config src/qed/examples/integer_grader.yaml \
-  --system-prompt-file src/qed/examples/integer_prompt.txt \
-  --parallelism 2 --target-correct 2
+qed fetch-data --year 2025     # AIME is CC BY-NC-SA, so it is fetched, not bundled
+# Put the model's weights under ~/models/<org>/<name>/ (see docs/usage.md);
+# launch profiles for the reference models ship with qed.
+nvidia-smi                     # qed refuses an occupied GPU
+qed --seed 20261011            # canonical v1: 30 questions, 8K first request, target 18
+qed view
 ```
 
-**Answer extraction is integer-only (0-999) in the shipped policies.** Other
-answer formats need a new policy extension; see the
-[usage guide](docs/usage.md#datasets).
+qed warms the engine, launches vLLM and a fresh grader, starts the clock and writes
+`attempts/<timestamp>/` (`summary.json` has `target_reached` and `time_to_target_s`).
+
+**4. Your own questions.** Give the grader a JSONL file of `problem_idx`, `problem`,
+`answer` and point a grader YAML at it; the solver only ever sees indices and statements.
+Add `--simulate` to run this without a GPU.
+
+```bash
+qed --grader-config src/qed/examples/integer_grader.yaml \
+    --system-prompt-file src/qed/examples/integer_prompt.txt \
+    --parallelism 2 --target-correct 2
+```
+
+**Answer extraction is integer-only (0-999) in the shipped policies.** Other answer
+formats need a new policy extension; see the [usage guide](docs/usage.md#datasets).
+Something not working? Errors print one line; `QED_DEBUG=1` shows the traceback.
 
 ## Policies
 
@@ -121,11 +123,12 @@ lists what to supply. No GPU measurement of `naive` is recorded here yet.
 
 | Piece | Where | What it gives you |
 | --- | --- | --- |
-| Runner | `qed/` | Streaming candidate extraction, bounded round scheduling, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
+| Runner | `src/qed/` | Streaming candidate extraction, bounded round scheduling, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
 | Policies | `extensions/` | `v1.6` and `naive`; the template for new ones |
-| Grader | `qed/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
+| Grader | `src/qed/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
 | Viewer | `qed view` | Per-attempt trajectories, verdicts and GPU samples; aggregate time-to-target with matched-control comparison |
 | Analysis | `qed.analysis` | Offline plots from saved telemetry |
+| Samples | `examples/attempts/`, `src/qed/examples/` | A recorded real run for the viewer; bundled inputs (synthetic questions, grader configs, a simulation config) |
 | Data tools | `fetch-data`, `lib.datasets` | Hash-verified, revision-pinned benchmark download; custom-dataset adapter |
 
 More: [usage guide](docs/usage.md) (flags, policy and timing semantics, profiling),

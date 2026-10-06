@@ -86,7 +86,13 @@ def assert_gpu_idle(device):
     """Fail before warmup if another CUDA workload is present; never terminate it."""
     import pynvml
 
-    pynvml.nvmlInit()
+    try:
+        pynvml.nvmlInit()
+    except pynvml.NVMLError as exc:
+        raise RuntimeError(
+            f"No usable NVIDIA GPU driver (NVML: {exc}). Real runs need an NVIDIA GPU and vLLM; "
+            "to try qed without them, add --simulate."
+        ) from None
     try:
         handle = pynvml.nvmlDeviceGetHandleByIndex(device)
         processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)

@@ -123,7 +123,14 @@ async def finalize(
             "scope"
         ] = "Client trace flush after official timing; excluded from time to target and official latency"
         atomic_json(output / "summary.json", summary)
-        atomic_json(output / "metadata.json", build_metadata(output, config))
+        try:
+            atomic_json(output / "metadata.json", build_metadata(output, config))
+        except Exception as exc:
+            # A run that died before recording its dataset has nothing to normalize; its
+            # own error is what matters, so never let metadata hide it.
+            if summary.get("status") == "completed":
+                raise
+            summary["metadata_error"] = f"{type(exc).__name__}: {exc}"
     summary["grader_timeline"] = grader_timeline(
         output / "grader_audit.jsonl",
         config.get("official_started_at_utc"),
