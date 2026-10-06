@@ -371,6 +371,14 @@ arithmetic intensity, GPU profiles or kernel utilization, and `Engine.generate` 
 where KV-capacity admission and preemption would go. The transport, scripted model,
 runner and recording do not change.
 
+## Plotting an attempt
+
+`python -m qed.analysis.plot_attempt ATTEMPT_DIR OUT_DIR` (needs the `analysis` extra)
+draws requests in flight (fresh versus continuation), the verified-correct curve against
+the target, and requests per token budget, from files every attempt saves. Try it on the
+bundled run: `python -m qed.analysis.plot_attempt examples/attempts/20261004T220514.018752Z plots`.
+It writes PNG, SVG and PDF plus `attempt-timeline.json` with the numbers behind them.
+
 ## Package layout
 
 ```text

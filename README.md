@@ -127,7 +127,7 @@ lists what to supply. No GPU measurement of `naive` is recorded here yet.
 | Policies | `extensions/` | `v1.6` and `naive`; the template for new ones |
 | Grader | `src/qed/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
 | Viewer | `qed view` | Per-attempt trajectories, verdicts and GPU samples; aggregate time-to-target with matched-control comparison |
-| Analysis | `qed.analysis` | Offline plots from saved telemetry |
+| Analysis | `python -m qed.analysis.plot_attempt ATTEMPT_DIR OUT_DIR` | Requests in flight, verified-correct curve and request budgets, plotted from a saved attempt |
 | Samples | `examples/attempts/`, `src/qed/examples/` | A recorded real run for the viewer; bundled inputs (synthetic questions, grader configs, a simulation config) |
 | Data tools | `fetch-data`, `lib.datasets` | Hash-verified, revision-pinned benchmark download; custom-dataset adapter |
 
