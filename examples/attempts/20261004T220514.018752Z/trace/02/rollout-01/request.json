@@ -1,0 +1,23 @@
+{
+  "model": "r0b0tlab/VibeThinker-3B-NVFP4",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Solve the AIME problem carefully. You must expose each prospective answer as soon as you derive a value for the quantity requested in the original problem. Before any further rechecking, emit a separate line containing \\boxed{N}, where N is the computed integer from 0 to 999. Emit this line inside your reasoning immediately, even if the answer is tentative. Do not postpone it until the end of your reasoning, and do not leave a prospective answer only as an unboxed total or equation. Then continue checking your work. If you revise the prospective answer, immediately emit another boxed integer on its own line. Box only candidates for the original requested quantity, not subproblem values or examples. For a requested sum or difference, compute that quantity before boxing it. End with your final boxed answer."
+    },
+    {
+      "role": "user",
+      "content": "On $\\triangle ABC$ points $A, D, E$, and $B$ lie in that order on side $\\overline{AB}$ with $AD = 4$, $DE = 16$, $EB = 8$. Points $A, F, G$ and $C$ lie in that order on side $\\overline{AC}$ with $AF = 13$, $FG = 52$, and $GC = 26$. Let $M$ be the reflection of $D$ through $F$, and let $N$ be the reflection of $G$ through $E$. Quadrilateral $DEGF$ has area $288$. Find the area of heptagon $AFNBCEM$.\n\n\\begin{tikzpicture}[scale=0.07, line join=round, line cap=round, >=stealth]\n\n    \\coordinate (A) at (100,100);\n\n    \\coordinate (D) at (95,80);\n    \\coordinate (F) at (130,80);\n    \\coordinate (M) at (165,80);\n\n    \\coordinate (N) at (0,50);\n    \\coordinate (E) at (87.5,50);\n    \\coordinate (G) at (175,50);\n\n    \\coordinate (B) at ($(D)!2!(E)$);\n    \\coordinate (C) at ($(F)!2!(G)$);\n    \n    \\fill[draw=black, fill=gray!20] (N) -- (E) -- (M) -- (F) -- cycle;\n    \\fill[draw=black, fill=gray!20] (N) -- (E) -- (C) -- (B) -- cycle;\n    \\fill[draw=black, fill=gray!20] (A) -- (F) -- (M) --  cycle;\n    \n    \\draw[line width=0.5mm] (A) -- (B) -- (C) -- cycle;\n\n    \\draw (D) -- (M);\n    \\draw (G) -- (N);\n    \n    \\foreach \\point in {A,B,C,D,E,F,G,M,N}\n    \\filldraw [black] (\\point) circle (20pt);\n    \n    \\node[above]  at (A) {$A$};\n    \\node[below]       at (B) {$B$};\n    \\node[below]  at (C) {$C$};\n    \\node[left]       at (D) {$D$};\n    \\node[above left]       at (E) {$E$};\n    \\node[below]        at (F) {$F$};\n    \\node[below left]        at (G) {$G$};\n    \\node[right]        at (M) {$M$};\n    \\node[left]       at (N) {$N$};\n    \n\\end{tikzpicture}\n"
+    }
+  ],
+  "temperature": 0.8,
+  "top_p": 0.95,
+  "max_tokens": 8192,
+  "seed": 20261024,
+  "stream": true,
+  "stream_options": {
+    "include_usage": true,
+    "continuous_usage_stats": true
+  },
+  "return_token_ids": true
+}

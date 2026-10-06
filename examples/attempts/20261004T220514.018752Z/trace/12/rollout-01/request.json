@@ -1,0 +1,23 @@
+{
+  "model": "r0b0tlab/VibeThinker-3B-NVFP4",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Solve the AIME problem carefully. You must expose each prospective answer as soon as you derive a value for the quantity requested in the original problem. Before any further rechecking, emit a separate line containing \\boxed{N}, where N is the computed integer from 0 to 999. Emit this line inside your reasoning immediately, even if the answer is tentative. Do not postpone it until the end of your reasoning, and do not leave a prospective answer only as an unboxed total or equation. Then continue checking your work. If you revise the prospective answer, immediately emit another boxed integer on its own line. Box only candidates for the original requested quantity, not subproblem values or examples. For a requested sum or difference, compute that quantity before boxing it. End with your final boxed answer."
+    },
+    {
+      "role": "user",
+      "content": "The set of points in $3$-dimensional coordinate space that lie in the plane $x+y+z=75$ whose coordinates satisfy the inequalities\n$$x-yz<y-zx<z-xy$$\nforms three disjoint convex regions. Exactly one of those regions has finite area. The area of this finite region can be expressed in the form $a\\sqrt{b},$ where $a$ and $b$ are positive integers and $b$ is not divisible by the square of any prime. Find $a+b.$"
+    }
+  ],
+  "temperature": 0.8,
+  "top_p": 0.95,
+  "max_tokens": 8192,
+  "seed": 20261064,
+  "stream": true,
+  "stream_options": {
+    "include_usage": true,
+    "continuous_usage_stats": true
+  },
+  "return_token_ids": true
+}

@@ -1,0 +1,17 @@
+# V1.6: initial 8K followed by one continuation for the remaining output budget.
+# Preserve older profiles; NVFP4 Marlin, BF16 activations/KV, A100 SM80.
+model: ~/models/r0b0tlab/VibeThinker-3B-NVFP4
+served-model-name: r0b0tlab/VibeThinker-3B-NVFP4
+host: "127.0.0.1"
+port: 8000
+dtype: bfloat16
+quantization: modelopt_fp4
+linear-backend: marlin
+kv-cache-dtype: auto
+tensor-parallel-size: 1
+max-model-len: 65536
+gpu-memory-utilization: 0.95
+override-generation-config: '{"max_new_tokens": 65536}'
+enable-prefix-caching: true
+enable-prompt-tokens-details: true
+attention-backend: FLASHINFER

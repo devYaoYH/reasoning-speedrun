@@ -1,0 +1,17 @@
+# Matched v1.6 BF16 comparison on A100; preserve older profiles.
+# Weights: Hugging Face revision 77bd2cced09193c8b9a59a32bd8577bbd1f3e01c.
+# Unquantized linear layers use automatic native dispatch, never Marlin.
+model: ~/models/WeiboAI/VibeThinker-3B
+served-model-name: WeiboAI/VibeThinker-3B
+host: "127.0.0.1"
+port: 8000
+dtype: bfloat16
+linear-backend: auto
+kv-cache-dtype: auto
+tensor-parallel-size: 1
+max-model-len: 65536
+gpu-memory-utilization: 0.95
+override-generation-config: '{"max_new_tokens": 65536}'
+enable-prefix-caching: true
+enable-prompt-tokens-details: true
+attention-backend: FLASHINFER

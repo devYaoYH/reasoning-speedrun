@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIME Canonical Attempts</title>
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="/attempts/viewer.css">
+  <script src="/attempts/viewer.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><div><div class="eyebrow light">Canonical solver · saved evidence</div><h1>AIME <em>Attempts</em></h1></div></div>
+      <nav aria-label="Viewers"><a href="/results">Overall results</a><span aria-current="page">Attempts</span></nav>
+    </div>
+    <div class="masthead-rule"></div>
+    <div class="masthead-inner attempt-controls"><label for="attempt-select">Attempt</label><select id="attempt-select"></select><button id="refresh" type="button">Refresh files</button><label class="auto-refresh"><input id="auto-refresh" type="checkbox"> Refresh every 5s</label></div>
+    <div class="masthead-inner meta-row"><span id="model-name">Loading attempts…</span><span id="attempt-date"></span><span id="attempt-status"></span></div>
+  </header>
+  <main class="page-shell">
+    <div id="error" class="error-banner" role="alert" hidden></div>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <div id="empty" class="empty-state" hidden>No canonical attempts found. Save or copy <code>src.attempt</code> artifacts into <code>attempts/&lt;id&gt;/</code>, then refresh.</div>
+    <div id="content" hidden>
+      <section class="overview" aria-label="Attempt overview">
+        <div class="overview-intro"><div class="eyebrow">Official solving phase</div><h2 id="overview-title">Attempt overview</h2><p id="overview-note"></p></div>
+        <div class="metrics-grid" id="metrics"></div>
+      </section>
+      <section class="timeline-card" aria-labelledby="curve-title"><div class="section-heading"><div><div class="eyebrow">Oracle-confirmed outcomes</div><h2 id="curve-title">Time to verified solutions</h2></div><span id="target-note"></span></div><div id="solve-curve"></div><p class="timeline-note">Positive grader verdicts on the official attempt clock. Setup and warmup are excluded; these are recorded events rather than a back-test.</p></section>
+      <section class="timeline-card" aria-labelledby="gpu-title"><div class="section-heading"><div><div class="eyebrow">Device telemetry</div><h2 id="gpu-title">GPU during solving</h2></div><span id="gpu-meta"></span></div><div id="gpu-plot"></div><p class="timeline-note">Shared device VRAM and utilization include concurrent rollouts and vLLM's preallocated cache. They are not per-request allocations. Plot samples are reduced for display while retaining extrema.</p></section>
+      <details class="provenance"><summary>Configuration and provenance</summary><div id="file-links"></div><pre id="config"></pre></details>
+      <section class="explorer" aria-label="Question explorer">
+        <aside class="question-panel"><div class="panel-title"><div><div class="eyebrow">Browse trajectories</div><h2>Questions <span id="visible-count"></span></h2></div></div><div class="search-wrap"><input id="search" type="search" placeholder="Search question text or number" aria-label="Search questions"></div><div class="filter-row" id="filters" role="group" aria-label="Filter questions"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="solved">Solved</button><button class="filter" data-filter="unsolved">Unsolved</button><button class="filter" data-filter="error">Errors</button><button class="filter" data-filter="stopped">Stopped</button></div><div id="question-list" class="question-list"></div></aside>
+        <article id="detail" class="detail-panel" aria-live="polite"><div class="empty-state">Select a question.</div></article>
+      </section>
+    </div>
+    <footer>AIME 2024 / 2025 / 2026 · Canonical src.attempt artifacts · Read-only local viewer</footer>
+  </main>
+</body>
+</html>

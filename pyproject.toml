@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reasoning-speedrun"
+version = "0.1.0"
+description = "Time-to-N-correct harness for locally served reasoning models: exact-token continuations, a toll-gated grader, traces and a browser viewer."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "httpx>=0.28,<0.29",
+    "PyYAML>=6.0,<7",
+    "jsonschema>=4.20,<5",
+    "nvidia-ml-py>=12,<14",
+]
+
+[project.optional-dependencies]
+# Dependencies of the bundled answer-checking grader (run as its own process).
+grader = [
+    "sympy==1.14.0",
+    "antlr4-python3-runtime==4.11.0",
+    "regex==2026.6.28",
+    "loguru==0.7.3",
+]
+# Needed only by `python -m reasoning_speedrun.fetch_data`.
+data = ["pyarrow>=17,<24"]
+analysis = ["matplotlib>=3.8,<4"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+reasoning-speedrun = "reasoning_speedrun.cli:main"
+speedrun-viewer = "reasoning_speedrun.viewer.server:main"
+speedrun-fetch-data = "reasoning_speedrun.fetch_data:main"
+
+[project.urls]
+Repository = "https://github.com/devYaoYH/reasoning-speedrun"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+reasoning_speedrun = [
+    "manifest.json",
+    "metadata.schema.json",
+    "data/*",
+    "examples/*",
+    "grader/*.py",
+    "grader/*.yaml",
+    "grader/*.md",
+    "grader/*.txt",
+    "grader/grader_core/*.py",
+    "presets/*",
+    "prompts/*",
+    "profiles/models/*/*/*.yaml",
+    "extensions/v1_6/*.json",
+    "viewer/*.css",
+    "viewer/attempts_ui/*",
+    "viewer/results_ui/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

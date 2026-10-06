@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "core_id": "runner_core_v1_6",
+  "canonical_manifest_sha256": "d5542b888a5b616be202b3040211d718b19dacdf4d336db6b4abad6a736d8172",
+  "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
+  "previous_source_commit": "51611b5e",
+  "change_reason": "Release packaging: src layout, package-relative manifests, report-only drift checks",
+  "sha256": {
+    "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
+    "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
+    "extensions/v1_6/allocation.py": "54bcdc0a92d21b2af9209e08bc28c828906d5b69b5ba11a2e2e0606059e6eb69",
+    "extensions/v1_6/budgets.py": "5f8c55e482963e95cdc142f6ccd2083abbf34069e0a1997395cd0a463c2c3a0c",
+    "extensions/v1_6/cli.py": "0e3fc6a81bf7976ec6ffb894f5f231352681524929460e77116873fcf459742a",
+    "extensions/v1_6/integrity.py": "9ddf07df8a66df09040e293e6e3b52f0b0c5622d6067b7397a97f77247dc5867",
+    "extensions/v1_6/policy.json": "0aa62e8cf2282097680d423b0f5f0dbeaeab2c319b91d8ce3592ddeffed7e9c7",
+    "extensions/v1_6/policy.py": "265bfc87a8fa6f93463cfeaec8f0ef36a01d29998d6ca1f696eed52a9eaad218",
+    "lib/policy_runtime.py": "650eb1830928e9973dbb71810f0a304ab7ad0f2a21c18a3bdeb2169805b2fad0",
+    "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml": "bc716a4d4a26df0eacc1891202840e4869f39cf31a544dfc7cc8c942c5405c0a"
+  }
+}

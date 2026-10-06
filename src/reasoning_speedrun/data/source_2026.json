@@ -1,0 +1,17 @@
+{
+  "source": "https://huggingface.co/datasets/MathArena/aime_2026",
+  "revision": "d2de22f3c656b4f56cf8981212186377d1e23bc3",
+  "split": "train",
+  "rows": 30,
+  "dataset_sha256": "1f8b925ff0faba7a14ed8bb8764f086a6368828b9b2722fa0db6115e59b56f40",
+  "grader_sha256": "ed46fd56f94095856364286da3139d051907c494bdea86476059f5067d225c21",
+  "downloaded_at_utc": "2026-10-03T21:41:42.262+00:00",
+  "downloads": [
+    {
+      "url": "https://huggingface.co/datasets/MathArena/aime_2026/resolve/d2de22f3c656b4f56cf8981212186377d1e23bc3/data/train-00000-of-00001.parquet",
+      "sha256": "d91db799651b4cc1f0734f52792a695c9cc60dac342524b3d8e5b2ff31c3e957"
+    }
+  ],
+  "license": "cc-by-nc-sa-4.0",
+  "note": "MathArena transcription and matching answers, including its contest variants; answers used only by grader."
+}

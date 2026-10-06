@@ -1,0 +1,11 @@
+dataset:
+  source: ../examples/integer_questions.jsonl
+  format: jsonl
+  idx_field: problem_idx
+  problem_field: problem
+  gold_field: answer
+  id: integer_example
+  split: test
+cost_c: 3.0
+host: 127.0.0.1
+port: 8077

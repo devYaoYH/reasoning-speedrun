@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "timings": {},
+  "counters": {},
+  "maxima": {},
+  "runner_process": {
+    "user_s": 23.814515999999998,
+    "system_s": 2.6162779999999994,
+    "peak_rss_mib": 314.34375,
+    "official_user_s": 23.74524200000002,
+    "official_system_s": 2.6073429999999984
+  },
+  "event_loop_lag": {},
+  "first_verification_submit_elapsed_s": null,
+  "engine": {
+    "samples": 0,
+    "errors": [],
+    "first": {},
+    "last": {},
+    "observed_max": {}
+  },
+  "scope": "runner CPU/IO only; async wall waits overlap; engine counters include warmup baseline"
+}

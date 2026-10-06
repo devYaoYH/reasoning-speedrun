@@ -1,0 +1,520 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Frozen mathematical core v2 attempt metadata",
+  "description": "Intervention annotations and recorded controls. Unknown measurements are null. Event outcomes remain in summary/trace files.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "attempt_id",
+    "label",
+    "intervention",
+    "runner",
+    "model",
+    "gpu",
+    "controls",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "reference_attempt_id",
+        "changed_variables",
+        "comparison_note"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "reference_attempt_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "changed_variables": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comparison_note": {
+          "type": "string"
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module",
+        "version",
+        "git_commit",
+        "git_dirty"
+      ],
+      "properties": {
+        "module": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "git_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "quantization",
+        "quantization_source",
+        "activation_dtype",
+        "kv_cache_dtype",
+        "linear_backend"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantization": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantization_source": {
+          "type": "string"
+        },
+        "activation_dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kv_cache_dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "linear_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "gpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device",
+        "device_count",
+        "total_vram_mib",
+        "memory_utilization",
+        "configured_envelope_mib"
+      ],
+      "properties": {
+        "device": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "total_vram_mib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "memory_utilization": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "configured_envelope_mib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset",
+        "question_indices",
+        "target_correct",
+        "grader_cost_s",
+        "grader_serial",
+        "max_context_tokens",
+        "max_num_seqs",
+        "prefix_caching",
+        "reasoning_parser",
+        "hyperparameters"
+      ],
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "question_indices": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "target_correct": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "grader_cost_s": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "grader_serial": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "max_context_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "max_num_seqs": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "prefix_caching": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "reasoning_parser": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hyperparameters": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                }
+              }
+            ]
+          },
+          "required": [
+            "strategy",
+            "max_tokens",
+            "first_pass_max_tokens",
+            "max_attempts_per_question",
+            "max_rounds",
+            "continuation_enabled",
+            "answer_extraction",
+            "system_prompt_sha256"
+          ],
+          "properties": {
+            "parallelism": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "rollouts": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "max_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "first_pass_max_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "max_attempts_per_question": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "max_rounds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "strategy": {
+              "type": "string"
+            },
+            "continuation_enabled": {
+              "type": "boolean"
+            },
+            "answer_extraction": {
+              "type": "string"
+            },
+            "system_prompt_sha256": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config",
+        "profile",
+        "profile_sha256",
+        "notes"
+      ],
+      "properties": {
+        "config": {
+          "const": "config.json"
+        },
+        "profile": {
+          "enum": [
+            "model_profile.json",
+            null
+          ]
+        },
+        "profile_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "year",
+            "role",
+            "source",
+            "revision",
+            "split",
+            "rows",
+            "prompt_path",
+            "grader_path",
+            "prompt_sha256",
+            "grader_sha256",
+            "inferred_from_legacy_runner"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "year": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "role": {
+              "enum": [
+                "prewarming",
+                "development",
+                "generalization",
+                null
+              ]
+            },
+            "source": {
+              "type": "string"
+            },
+            "revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "split": {
+              "type": "string"
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "prompt_path": {
+              "type": "string"
+            },
+            "grader_path": {
+              "type": "string"
+            },
+            "prompt_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "grader_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "inferred_from_legacy_runner": {
+              "type": "boolean"
+            },
+            "sources": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source",
+                  "revision",
+                  "split",
+                  "rows",
+                  "index_offset"
+                ],
+                "properties": {
+                  "source": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "type": "string"
+                  },
+                  "split": {
+                    "type": "string"
+                  },
+                  "rows": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "index_offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "manifest_path": {
+              "type": "string"
+            },
+            "manifest_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "overlap_notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

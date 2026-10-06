@@ -1,0 +1,40 @@
+{
+  "rollout": 1,
+  "round": 1,
+  "started_at_utc": "2026-10-04T22:05:14.812+00:00",
+  "start_monotonic_s": 355762.874798267,
+  "ttft_s": 0.16973451600642875,
+  "last_token_s": 13.450081170012709,
+  "finish_reason": null,
+  "status": "cancelled",
+  "done_received": false,
+  "usage": {
+    "prompt_tokens": 287,
+    "total_tokens": 2471,
+    "completion_tokens": 2184,
+    "completion_tokens_details": null
+  },
+  "endpoint": "/v1/chat/completions",
+  "continuation_of_rollout": null,
+  "requested_max_tokens": 8192,
+  "http_status": 200,
+  "headers_received_s": 0.04690255405148491,
+  "generation_finished_at_utc": "2026-10-04T22:05:28.265+00:00",
+  "generation_end_monotonic_s": 355776.328475134,
+  "generation_latency_s": 13.453676867007744,
+  "generation_censored": true,
+  "generated_token_ids_count": 2184,
+  "prompt_token_ids_count": 287,
+  "cached_prompt_tokens": null,
+  "prefix_cache_hit_fraction": null,
+  "overhead": {
+    "enabled": false,
+    "timings": {},
+    "counters": {},
+    "maxima": {}
+  },
+  "finished_at_utc": "2026-10-04T22:05:28.267+00:00",
+  "end_to_end_latency_s": 13.454763823014218,
+  "end_to_end_scope": "rollout start through question verification/cancellation settlement",
+  "gpu": null
+}

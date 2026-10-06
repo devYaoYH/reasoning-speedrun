@@ -1,0 +1,512 @@
+{
+  "attempt_id": "20261004T220514.018752Z",
+  "status": "completed",
+  "error": null,
+  "official_started_at_utc": "2026-10-04T22:05:14.805+00:00",
+  "official_finished_at_utc": "2026-10-04T22:06:16.972+00:00",
+  "official_latency_s": 62.163762643001974,
+  "initialization_and_attempt_latency_s": 62.950588803039864,
+  "benchmark_prewarm": null,
+  "runner_id": "runner_core_v1",
+  "schedule": "barrier",
+  "solved": 18,
+  "questions_completed": 18,
+  "questions_attempted": 30,
+  "target_correct": 18,
+  "target_reached": true,
+  "rounds_executed": 2,
+  "questions": [
+    {
+      "problem_idx": 1,
+      "status": "solved",
+      "end_to_end_latency_s": 7.457110118994024,
+      "unique_candidates": 1,
+      "verified_answer": "70",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 1,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "70",
+        "first_solved_at_utc": "2026-10-04T22:05:22.262+00:00",
+        "first_solved_elapsed_s": 7.457329328986816,
+        "grader_answered_at_utc": "2026-10-04T22:05:22.261231Z",
+        "grader_query_id": "20261004T220514.018752Z-q1-a70"
+      }
+    },
+    {
+      "problem_idx": 2,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15464753500419,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 3,
+      "status": "solved",
+      "end_to_end_latency_s": 13.45997741096653,
+      "unique_candidates": 1,
+      "verified_answer": "16",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 3,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "16",
+        "first_solved_at_utc": "2026-10-04T22:05:28.265+00:00",
+        "first_solved_elapsed_s": 13.460089640982915,
+        "grader_answered_at_utc": "2026-10-04T22:05:28.261909Z",
+        "grader_query_id": "20261004T220514.018752Z-q3-a16"
+      }
+    },
+    {
+      "problem_idx": 4,
+      "status": "solved",
+      "end_to_end_latency_s": 34.45844652497908,
+      "unique_candidates": 1,
+      "verified_answer": "117",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 4,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "117",
+        "first_solved_at_utc": "2026-10-04T22:05:49.265+00:00",
+        "first_solved_elapsed_s": 34.45997940696543,
+        "grader_answered_at_utc": "2026-10-04T22:05:49.264028Z",
+        "grader_query_id": "20261004T220514.018752Z-q4-a117"
+      }
+    },
+    {
+      "problem_idx": 5,
+      "status": "solved",
+      "end_to_end_latency_s": 46.464246361050755,
+      "unique_candidates": 1,
+      "verified_answer": "279",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 5,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "279",
+        "first_solved_at_utc": "2026-10-04T22:06:01.267+00:00",
+        "first_solved_elapsed_s": 46.461647081014235,
+        "grader_answered_at_utc": "2026-10-04T22:06:01.265346Z",
+        "grader_query_id": "20261004T220514.018752Z-q5-a279"
+      }
+    },
+    {
+      "problem_idx": 6,
+      "status": "solved",
+      "end_to_end_latency_s": 16.46100693702465,
+      "unique_candidates": 1,
+      "verified_answer": "504",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 6,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "504",
+        "first_solved_at_utc": "2026-10-04T22:05:31.265+00:00",
+        "first_solved_elapsed_s": 16.459485867002513,
+        "grader_answered_at_utc": "2026-10-04T22:05:31.262203Z",
+        "grader_query_id": "20261004T220514.018752Z-q6-a504"
+      }
+    },
+    {
+      "problem_idx": 7,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15436133998446,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 8,
+      "status": "solved",
+      "end_to_end_latency_s": 31.460161863011308,
+      "unique_candidates": 1,
+      "verified_answer": "77",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 8,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "77",
+        "first_solved_at_utc": "2026-10-04T22:05:46.265+00:00",
+        "first_solved_elapsed_s": 31.459877920977306,
+        "grader_answered_at_utc": "2026-10-04T22:05:46.263730Z",
+        "grader_query_id": "20261004T220514.018752Z-q8-a77"
+      }
+    },
+    {
+      "problem_idx": 9,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15439713699743,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 10,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.154550353006925,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 11,
+      "status": "solved",
+      "end_to_end_latency_s": 55.60931016202085,
+      "unique_candidates": 1,
+      "verified_answer": "259",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 11,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "259",
+        "first_solved_at_utc": "2026-10-04T22:06:10.412+00:00",
+        "first_solved_elapsed_s": 55.60739304096205,
+        "grader_answered_at_utc": "2026-10-04T22:06:10.410583Z",
+        "grader_query_id": "20261004T220514.018752Z-q11-a259"
+      }
+    },
+    {
+      "problem_idx": 12,
+      "status": "solved",
+      "end_to_end_latency_s": 62.11846875399351,
+      "unique_candidates": 1,
+      "verified_answer": "510",
+      "winning_rollout": 2,
+      "first_solved": {
+        "problem_idx": 12,
+        "round": 2,
+        "rollout": 2,
+        "candidate": "510",
+        "first_solved_at_utc": "2026-10-04T22:06:16.923+00:00",
+        "first_solved_elapsed_s": 62.118150707974564,
+        "grader_answered_at_utc": "2026-10-04T22:06:16.922663Z",
+        "grader_query_id": "20261004T220514.018752Z-q12-a510"
+      }
+    },
+    {
+      "problem_idx": 13,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15452915400965,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 14,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15427506802371,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 15,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15440162597224,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 16,
+      "status": "solved",
+      "end_to_end_latency_s": 37.45708337897668,
+      "unique_candidates": 1,
+      "verified_answer": "468",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 16,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "468",
+        "first_solved_at_utc": "2026-10-04T22:05:52.265+00:00",
+        "first_solved_elapsed_s": 37.460422043979634,
+        "grader_answered_at_utc": "2026-10-04T22:05:52.264317Z",
+        "grader_query_id": "20261004T220514.018752Z-q16-a468"
+      }
+    },
+    {
+      "problem_idx": 17,
+      "status": "solved",
+      "end_to_end_latency_s": 10.457575248961803,
+      "unique_candidates": 1,
+      "verified_answer": "49",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 17,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "49",
+        "first_solved_at_utc": "2026-10-04T22:05:25.265+00:00",
+        "first_solved_elapsed_s": 10.459876250009984,
+        "grader_answered_at_utc": "2026-10-04T22:05:25.261621Z",
+        "grader_query_id": "20261004T220514.018752Z-q17-a49"
+      }
+    },
+    {
+      "problem_idx": 18,
+      "status": "solved",
+      "end_to_end_latency_s": 52.60682055295911,
+      "unique_candidates": 1,
+      "verified_answer": "82",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 18,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "82",
+        "first_solved_at_utc": "2026-10-04T22:06:07.412+00:00",
+        "first_solved_elapsed_s": 52.60700432700105,
+        "grader_answered_at_utc": "2026-10-04T22:06:07.410246Z",
+        "grader_query_id": "20261004T220514.018752Z-q18-a82"
+      }
+    },
+    {
+      "problem_idx": 19,
+      "status": "solved",
+      "end_to_end_latency_s": 28.46072669205023,
+      "unique_candidates": 1,
+      "verified_answer": "106",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 19,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "106",
+        "first_solved_at_utc": "2026-10-04T22:05:43.265+00:00",
+        "first_solved_elapsed_s": 28.45968319498934,
+        "grader_answered_at_utc": "2026-10-04T22:05:43.263415Z",
+        "grader_query_id": "20261004T220514.018752Z-q19-a106"
+      }
+    },
+    {
+      "problem_idx": 20,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.154120938968845,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 21,
+      "status": "solved",
+      "end_to_end_latency_s": 19.45651892904425,
+      "unique_candidates": 1,
+      "verified_answer": "293",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 21,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "293",
+        "first_solved_at_utc": "2026-10-04T22:05:34.264+00:00",
+        "first_solved_elapsed_s": 19.45865544199478,
+        "grader_answered_at_utc": "2026-10-04T22:05:34.262506Z",
+        "grader_query_id": "20261004T220514.018752Z-q21-a293"
+      }
+    },
+    {
+      "problem_idx": 22,
+      "status": "solved",
+      "end_to_end_latency_s": 25.457165182975587,
+      "unique_candidates": 1,
+      "verified_answer": "237",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 22,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "237",
+        "first_solved_at_utc": "2026-10-04T22:05:40.264+00:00",
+        "first_solved_elapsed_s": 25.459252122964244,
+        "grader_answered_at_utc": "2026-10-04T22:05:40.263118Z",
+        "grader_query_id": "20261004T220514.018752Z-q22-a237"
+      }
+    },
+    {
+      "problem_idx": 23,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.153967270976864,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 24,
+      "status": "solved",
+      "end_to_end_latency_s": 43.460062689031474,
+      "unique_candidates": 1,
+      "verified_answer": "149",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 24,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "149",
+        "first_solved_at_utc": "2026-10-04T22:05:58.266+00:00",
+        "first_solved_elapsed_s": 43.46119030198315,
+        "grader_answered_at_utc": "2026-10-04T22:05:58.264992Z",
+        "grader_query_id": "20261004T220514.018752Z-q24-a149"
+      }
+    },
+    {
+      "problem_idx": 25,
+      "status": "solved",
+      "end_to_end_latency_s": 22.456733260012697,
+      "unique_candidates": 1,
+      "verified_answer": "907",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 25,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "907",
+        "first_solved_at_utc": "2026-10-04T22:05:37.264+00:00",
+        "first_solved_elapsed_s": 22.45914437697502,
+        "grader_answered_at_utc": "2026-10-04T22:05:37.262811Z",
+        "grader_query_id": "20261004T220514.018752Z-q25-a907"
+      }
+    },
+    {
+      "problem_idx": 26,
+      "status": "solved",
+      "end_to_end_latency_s": 40.46142939903075,
+      "unique_candidates": 1,
+      "verified_answer": "113",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 26,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "113",
+        "first_solved_at_utc": "2026-10-04T22:05:55.266+00:00",
+        "first_solved_elapsed_s": 40.460663122998085,
+        "grader_answered_at_utc": "2026-10-04T22:05:55.264660Z",
+        "grader_query_id": "20261004T220514.018752Z-q26-a113"
+      }
+    },
+    {
+      "problem_idx": 27,
+      "status": "solved",
+      "end_to_end_latency_s": 58.60191904596286,
+      "unique_candidates": 1,
+      "verified_answer": "19",
+      "winning_rollout": 1,
+      "first_solved": {
+        "problem_idx": 27,
+        "round": 1,
+        "rollout": 1,
+        "candidate": "19",
+        "first_solved_at_utc": "2026-10-04T22:06:13.412+00:00",
+        "first_solved_elapsed_s": 58.60662629496073,
+        "grader_answered_at_utc": "2026-10-04T22:06:13.410916Z",
+        "grader_query_id": "20261004T220514.018752Z-q27-a19"
+      }
+    },
+    {
+      "problem_idx": 28,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15365503600333,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 29,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.15375167800812,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    },
+    {
+      "problem_idx": 30,
+      "status": "stopped",
+      "end_to_end_latency_s": 62.153929941006936,
+      "unique_candidates": 0,
+      "verified_answer": null,
+      "winning_rollout": null,
+      "first_solved": null
+    }
+  ],
+  "time_to_target_s": 62.118150707974564,
+  "performance": {
+    "generation_requests": 43,
+    "fresh_ttft": {
+      "count": 30,
+      "median_s": 0.24083674896974117,
+      "p95_s": 0.29315670201322064
+    },
+    "continuation_ttft": {
+      "count": 13,
+      "median_s": 0.15335295198019594,
+      "p95_s": 0.17342094099149108
+    },
+    "official_gpu": null,
+    "initialization_gpu": null
+  },
+  "overhead": {
+    "schema_version": 1,
+    "enabled": false,
+    "timings": {},
+    "counters": {},
+    "maxima": {},
+    "runner_process": {
+      "user_s": 23.814515999999998,
+      "system_s": 2.6162779999999994,
+      "peak_rss_mib": 314.34375,
+      "official_user_s": 23.74524200000002,
+      "official_system_s": 2.6073429999999984
+    },
+    "event_loop_lag": {},
+    "first_verification_submit_elapsed_s": null,
+    "engine": {
+      "samples": 0,
+      "errors": [],
+      "first": {},
+      "last": {},
+      "observed_max": {}
+    },
+    "scope": "runner CPU/IO only; async wall waits overlap; engine counters include warmup baseline"
+  },
+  "service_cleanup_latency_s": 0.10035035997861996,
+  "trace_storage": {
+    "buffered": true,
+    "files_written": 319,
+    "jsonl_rows": 192546,
+    "payload_characters": 68682012,
+    "latency_s": 1.5597029560012743,
+    "scope": "Client trace flush after official timing; excluded from time to target and official latency"
+  },
+  "grader_timeline": {
+    "completed_queries": 18,
+    "audit_errors": [],
+    "correct": 18,
+    "wrong": 0,
+    "target_service_floor_s": 54.0,
+    "actual_service_s": 54.001790285110474,
+    "idle_between_queries_s": 3.659724712371826,
+    "first_pick_elapsed_s": 4.456147909164429,
+    "scope": "completed oracle jobs; queued/cancelled client jobs may still incur service"
+  }
+}

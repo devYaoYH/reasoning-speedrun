@@ -1,0 +1,10 @@
+{
+  "source": "https://huggingface.co/datasets/MathArena/aime_2025",
+  "revision": "c94da77eb22bbd6439e62a323bec18493a421302",
+  "split": "train",
+  "rows": 30,
+  "dataset_sha256": "fe7b8a157da7c1389ab0ca9ffb1536973843b8244a796d5c1f5fbb0b62a1f221",
+  "grader_sha256": "d5bcac5904290630fe98e3c3d1c2773260ebf59b57955382735e9ce8c0142b41",
+  "license": "cc-by-nc-sa-4.0",
+  "note": "Official problem statements and answers; answers are used only for local grading."
+}

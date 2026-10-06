@@ -1,0 +1,23 @@
+{
+  "model": "r0b0tlab/VibeThinker-3B-NVFP4",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Solve the AIME problem carefully. You must expose each prospective answer as soon as you derive a value for the quantity requested in the original problem. Before any further rechecking, emit a separate line containing \\boxed{N}, where N is the computed integer from 0 to 999. Emit this line inside your reasoning immediately, even if the answer is tentative. Do not postpone it until the end of your reasoning, and do not leave a prospective answer only as an unboxed total or equation. Then continue checking your work. If you revise the prospective answer, immediately emit another boxed integer on its own line. Box only candidates for the original requested quantity, not subproblem values or examples. For a requested sum or difference, compute that quantity before boxing it. End with your final boxed answer."
+    },
+    {
+      "role": "user",
+      "content": "Sixteen chairs are arranged in a row. Eight people each select a chair in which to sit so that no person sits next to two other people. Let $N$ be the number of subsets of the 16 chairs that could be selected. Find the remainder when $N$ is divided by $1000$."
+    }
+  ],
+  "temperature": 0.8,
+  "top_p": 0.95,
+  "max_tokens": 8192,
+  "seed": 20261116,
+  "stream": true,
+  "stream_options": {
+    "include_usage": true,
+    "continuous_usage_stats": true
+  },
+  "return_token_ids": true
+}

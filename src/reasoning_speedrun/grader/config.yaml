@@ -1,0 +1,12 @@
+# Speedrun grader config. Swap `dataset` to change problem set (same schema).
+# Replace `source` with a fetched AIME file (see grader/README.md) or your own JSONL.
+dataset:
+  source: aime_2025.jsonl       # local file (absolute, or relative to this dir) OR an HF name
+  format: jsonl                 # jsonl | csv | parquet | hf
+  idx_field: problem_idx        # column holding the question index
+  gold_field: answer            # column holding the gold answer
+
+cost_c: 3.0                     # seconds each verification costs (toll, from worker pickup)
+host: 127.0.0.1
+port: 8077
+audit_log: logs/queries.jsonl   # append-only; relative paths follow the working directory

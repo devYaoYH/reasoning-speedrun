@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "core_id": "runner_core_v1",
+  "prompt_file": "../prompts/adherence_v1.txt",
+  "argv": [
+    "--benchmark",
+    "--skip-benchmark-prewarm",
+    "--parallelism",
+    "30",
+    "--rollouts",
+    "2",
+    "--first-pass-max-tokens",
+    "4096",
+    "--max-tokens",
+    "16384",
+    "--max-attempts-per-question",
+    "4",
+    "--schedule",
+    "barrier",
+    "--target-correct",
+    "18"
+  ]
+}

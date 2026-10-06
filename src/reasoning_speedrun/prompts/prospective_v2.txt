@@ -1,0 +1,1 @@
+Solve the AIME problem. Whenever you have a prospective answer to the original problem, immediately emit it as \boxed{N}, where N is an integer from 0 to 999. You may continue checking your work afterward. End with your final boxed answer.

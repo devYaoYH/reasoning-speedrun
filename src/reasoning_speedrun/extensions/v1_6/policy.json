@@ -1,0 +1,5 @@
+{
+  "max_fresh_samples_per_question": 4,
+  "max_rollout_tokens": 65536,
+  "max_concurrent_requests": null
+}

@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.env
+.pytest_cache/
+.attempt.lock
+
+# Experiment output stays out of Git; examples/attempts/ holds the curated sample.
+/attempts/
+/runs/
+/data/
+*.sse.jsonl
+stream.jsonl
+grader_audit.jsonl
+*.log

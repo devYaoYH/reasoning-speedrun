@@ -1,0 +1,5 @@
+{
+  "path": "~/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-flashinfer.yaml",
+  "yaml": "# Experimental attention backend; retain the standard profile separately.\n# NVFP4 weights through Marlin, BF16 activations and KV, A100 SM80.\nmodel: ~/models/r0b0tlab/VibeThinker-3B-NVFP4\nserved-model-name: r0b0tlab/VibeThinker-3B-NVFP4\nhost: \"127.0.0.1\"\nport: 8000\ndtype: bfloat16\nquantization: modelopt_fp4\nlinear-backend: marlin\nkv-cache-dtype: auto\ntensor-parallel-size: 1\nmax-model-len: 65536\ngpu-memory-utilization: 0.95\noverride-generation-config: '{\"max_new_tokens\": 16384}'\nenable-prefix-caching: true\nenable-prompt-tokens-details: true\nattention-backend: FLASHINFER\n",
+  "sha256": "aa2f451c99233d1e3ba15f9931f550cf5c46273f1ddb837a5802d521cdcf9753"
+}

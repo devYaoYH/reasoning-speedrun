@@ -1,0 +1,17 @@
+# Matched A100 v1.6 deployment: AWQ int4/group128 weights, Marlin.
+# HF revision d32ba299f24c77d241832556d7cf5308699354b7.
+model: ~/models/AABoyles/VibeThinker-3B-AWQ
+served-model-name: AABoyles/VibeThinker-3B-AWQ
+host: "127.0.0.1"
+port: 8000
+dtype: bfloat16
+quantization: awq
+linear-backend: marlin
+kv-cache-dtype: auto
+tensor-parallel-size: 1
+max-model-len: 65536
+gpu-memory-utilization: 0.95
+override-generation-config: '{"max_new_tokens": 65536}'
+enable-prefix-caching: true
+enable-prompt-tokens-details: true
+attention-backend: FLASHINFER

@@ -1,0 +1,37 @@
+{
+  "source": "https://huggingface.co/MathArena",
+  "revision": "composite-sha256:2404dbf67ec08b21cbb156e74a025f41276eb91170a2dde8f859123f47bd06a5",
+  "split": "train",
+  "rows": 30,
+  "dataset_sha256": "c2bf04bcf7706ad951fa59bbf8cfc465637cc6095e1f6f3d70db09973355759c",
+  "grader_sha256": "3e8ceda3b130f6f282cea41e32bb422a0a73d33a5b0e340cf0f9c15d48ded483",
+  "downloaded_at_utc": "2026-10-03T23:47:43.871+00:00",
+  "downloads": [
+    {
+      "url": "https://huggingface.co/datasets/MathArena/aime_2024_I/resolve/ea5b061c3e8039dc9858defaafc407d04b995e9f/data/train-00000-of-00001.parquet",
+      "sha256": "e4033c704609cc7cdfe712ed410357b190733dec75aa5b54a39adc55add49393"
+    },
+    {
+      "url": "https://huggingface.co/datasets/MathArena/aime_2024_II/resolve/29d5d31e9b46e215fc24d9b2a3047506823dd101/data/train-00000-of-00001.parquet",
+      "sha256": "eab2b6a77c048ec4efb7d5f91d1f7548b7fc8a08566b9fcddd1b014699f30dbf"
+    }
+  ],
+  "license": "cc-by-nc-sa-4.0",
+  "note": "MathArena transcription and matching answers, including its contest variants; answers used only by grader.",
+  "sources": [
+    {
+      "source": "https://huggingface.co/datasets/MathArena/aime_2024_I",
+      "revision": "ea5b061c3e8039dc9858defaafc407d04b995e9f",
+      "split": "train",
+      "rows": 15,
+      "index_offset": 0
+    },
+    {
+      "source": "https://huggingface.co/datasets/MathArena/aime_2024_II",
+      "revision": "29d5d31e9b46e215fc24d9b2a3047506823dd101",
+      "split": "train",
+      "rows": 15,
+      "index_offset": 15
+    }
+  ]
+}
