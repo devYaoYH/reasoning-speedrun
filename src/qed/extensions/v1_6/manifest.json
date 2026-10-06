@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_v1_6",
-  "canonical_manifest_sha256": "18bfe6cbd95700326a1dc9b54e09830743e66eb5dbeca2a6977f97cd57db4ac9",
+  "canonical_manifest_sha256": "0cc8c83235f99a032b3a9d59577d8af890916bb3c05abd4bae159b9092e959e3",
   "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
   "previous_source_commit": "51611b5e",
-  "change_reason": "Tiered question difficulty for the simulated model; qed sim-config",
+  "change_reason": "Mixed difficulty is the simulation default; relative preset",
   "sha256": {
     "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
     "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",

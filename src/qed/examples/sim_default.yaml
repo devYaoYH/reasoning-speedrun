@@ -27,11 +27,12 @@ behavior:                    # the simulated *model*
   final_tokens: 40           # tokens of the final (non-reasoning) response
   # answers: path/to/key.jsonl   # default: the run's own answer key
 
-  # Per-question difficulty. uniform: every question alike (the flat knobs above).
-  # mixed: easy/medium/hard tiers with the same mean accuracy and length as the defaults.
-  # Or a list; a tier overrides p_correct, reasoning_median_tokens, reasoning_sigma,
-  # answer_at, p_wrong_first and inherits the rest. Preview with `qed sim-config`.
-  difficulty: uniform
+  # Per-question difficulty. mixed: easy/medium/hard in ratio 7:5:3 (14/10/6 of 30 questions),
+  # calibrated so p_correct and reasoning_median_tokens stay the *overall* accuracy and length.
+  # uniform: every question alike. Or a list of tiers (absolute values; whatever a tier leaves
+  # out is inherited from the flat knobs above): p_correct, reasoning_median_tokens,
+  # reasoning_sigma, answer_at, p_wrong_first. Preview any choice with `qed sim-config`.
+  difficulty: mixed
   # difficulty:
   #   - {name: easy, weight: 3, p_correct: 0.9, reasoning_median_tokens: 2500}
   #   - {name: hard, weight: 1, p_correct: 0.2, reasoning_median_tokens: 12000}

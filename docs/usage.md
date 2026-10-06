@@ -252,7 +252,7 @@ of valid ones. A run is also real wall-clock time: a 60-second simulated solve t
 | How many requests the server runs at once | `--sim max_num_seqs=32` |
 | How accurate the model is | `--sim behavior.p_correct=0.5` |
 | How long it reasons | `--sim behavior.reasoning_median_tokens=9000` |
-| Whether questions differ in difficulty | `--sim behavior.difficulty=mixed` |
+| Make every question equally hard | `--sim behavior.difficulty=uniform` |
 
 Everything else (listed below, and in
 [`examples/sim_default.yaml`](../src/qed/examples/sim_default.yaml)) has a default you
@@ -281,29 +281,30 @@ are wrong) without running anything.
 | `answer_at` | [0.45, 0.95] | Where the answer first appears, as a fraction of the reasoning |
 | `p_wrong_first` | 0.15 | Chance of a wrong tentative answer before the final one (the cost of optimism) |
 | `final_tokens` | 40 | Final response length after the reasoning |
-| `difficulty` | uniform | Per-question difficulty: `uniform`, `mixed`, or a list of tiers (below) |
+| `difficulty` | mixed | Per-question difficulty: `mixed`, `uniform`, or a list of tiers (below) |
 | `seed`, `answers` | 0, run's own key | Trajectory and tier-assignment seed; JSONL of `problem`/`answer` to use instead |
 
 ### Question difficulty
 
-By default every sample is drawn independently from the flat `behavior.` knobs: a
-question's samples are unrelated, as if every question were equally hard. Real
-questions are not: a hard one is long and wrong across *all* its samples, which makes
-extra samples worth much less. `behavior.difficulty` adds that as a two-level model:
-each question gets a **tier** once, then its samples are drawn from the tier's
-parameters.
+Real questions are not equally hard: a hard one is long and wrong across *all* its
+samples, which makes extra samples worth much less. So by default the simulated model
+is two-level: each question gets a **tier** once, then its samples are drawn from the
+tier's parameters (`behavior.difficulty`):
 
-- `uniform` (default): one tier equal to the flat knobs. A configuration that never
-  mentions difficulty behaves exactly as before.
-- `mixed`: easy / medium / hard (weights 0.4 / 0.4 / 0.2, accuracy 0.92 / 0.62 / 0.12,
-  median reasoning 2.4K / 6.2K / 13K tokens). Its mean accuracy (0.64) and mean length
-  match the uniform defaults, so the two differ only in *spread*: under `mixed` the
-  chance that all four samples of a question are wrong is 0.128, against 0.015 if
-  samples were independent.
+- `mixed` (default): easy / medium / hard in the ratio 7:5:3, i.e. 14 / 10 / 6 of 30
+  questions. The preset is *relative to the flat knobs*: `behavior.p_correct` stays
+  the **overall** accuracy and `behavior.reasoning_median_tokens` the overall length,
+  and the tiers only add spread around them (calibrated so the weighted means match).
+  At the defaults, accuracy is 0.92 / 0.60 / 0.10 and median reasoning 2.6K / 6.5K / 13K
+  tokens. Hard questions are mostly unsolvable, yet about 86% of questions still have
+  a correct sample among four, so a target like 18 of 30 stays reachable. The chance
+  all four samples of a question are wrong is 0.14, against 0.015 if samples were
+  independent. Raise `p_correct` and the tiers all get easier together.
+- `uniform`: one tier equal to the flat knobs: every question alike, samples independent.
 - A list, for full control. A tier needs a `weight` and may override any of
   `p_correct`, `reasoning_median_tokens`, `reasoning_sigma`, `answer_at`,
-  `p_wrong_first`; whatever it leaves out comes from the flat knobs, and weights are
-  normalized:
+  `p_wrong_first` with absolute values; whatever it leaves out comes from the flat
+  knobs, and weights are normalized:
 
   ```yaml
   behavior:
@@ -314,12 +315,11 @@ parameters.
 
 A tier belongs to the question, not the sample or the run: questions are ranked by a
 hash of `behavior.seed` and their text and cut into blocks sized by the weights (largest
-remainder), so 30 questions at 0.4/0.4/0.2 are exactly 12/12/6, a question keeps its
-tier whichever subset you run, and every policy sees the same hard questions.
-`simulation.json` lists which `problem_idx` fell in each tier. Tier values win over the
-flat knobs they override, so with `mixed` a flat `p_correct` has no effect. Check with
-`qed sim-config`. Hard questions can be effectively unsolvable, so a target near the
-number of questions may legitimately go unmet.
+remainder), so 30 questions at 7:5:3 are exactly 14/10/6, a question keeps its tier
+whichever subset you run, and every policy sees the same hard questions.
+`simulation.json` lists which `problem_idx` fell in each tier. `qed sim-config` shows
+the resolved tiers and what they imply, including the share of questions solvable
+within four samples, which is the ceiling on what a four-sample policy can reach.
 
 ### Trajectories
 

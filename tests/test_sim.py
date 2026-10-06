@@ -29,8 +29,8 @@ QUESTION = "What is 2+2?"
 
 
 def fast(*overrides):
-    base = ["decode_tps=1e7", "prefill_tps=1e9", "behavior.reasoning_median_tokens=300",
-            "behavior.reasoning_min_tokens=60"]
+    base = ["decode_tps=1e7", "prefill_tps=1e9", "behavior.difficulty=uniform",
+            "behavior.reasoning_median_tokens=300", "behavior.reasoning_min_tokens=60"]
     return SimConfig.from_sources(None, base + list(overrides))
 
 
@@ -104,26 +104,54 @@ class DifficultyTests(unittest.TestCase):
     def eng(self, *overrides, key=None):
         return Engine(SimConfig.from_sources(None, list(overrides)), "org/model", self.KEY if key is None else key, max_model_len=8192)
 
-    def test_unset_and_uniform_are_one_tier_equal_to_the_flat_knobs(self):
-        for overrides in ([], ["behavior.difficulty=uniform"]):
-            config = SimConfig.from_sources(None, overrides + ["behavior.p_correct=0.3"])
+    def test_mixed_is_the_default_and_uniform_is_one_tier_equal_to_the_flat_knobs(self):
+        self.assertEqual(SimConfig().behavior.difficulty, "mixed")
+        self.assertEqual([t["name"] for t in tiers(SimConfig().behavior)], ["easy", "medium", "hard"])
+        for spec in ("uniform", None):
+            config = SimConfig.from_dict({"behavior": {"difficulty": spec, "p_correct": 0.3}})
             (only,) = tiers(config.behavior)
             self.assertEqual((only["weight"], only["behavior"].p_correct), (1.0, 0.3))
 
     def test_flat_configuration_reproduces_the_pre_tier_plans_exactly(self):
-        config = SimConfig()
+        config = SimConfig.from_sources(None, ["behavior.difficulty=uniform"])
         eng = Engine(config, "m", self.KEY, max_model_len=8192)
         for seed in range(10):
             reference = build_plan(config.behavior, plan_rng(0, seed, "Question 3"), 3)
             plan = eng.plan_for("Question 3", seed)
             self.assertEqual(plan.render(0, plan.total), reference.render(0, reference.total))
 
-    def test_mixed_preset_matches_the_uniform_means_and_shows_the_correlation(self):
-        flat, mixed = expected(SimConfig().behavior), expected(SimConfig.from_sources(None, ["behavior.difficulty=mixed"]).behavior)
-        self.assertAlmostEqual(mixed["mean_p_correct"], flat["mean_p_correct"], delta=0.02)
-        self.assertAlmostEqual(mixed["mean_reasoning_tokens"] / flat["mean_reasoning_tokens"], 1, delta=0.02)
+    def test_mixed_is_calibrated_so_the_flat_knobs_mean_overall_accuracy_and_length(self):
+        uniform = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform"]).behavior)
+        for p in (0.1, 0.3, 0.5, 0.65, 0.9, 0.99):
+            mixed = expected(SimConfig.from_sources(None, [f"behavior.p_correct={p}"]).behavior)
+            self.assertAlmostEqual(mixed["mean_p_correct"], p, places=6)
+            accuracy = [tier["p_correct"] for tier in mixed["tiers"]]
+            self.assertTrue(accuracy[0] > accuracy[1] > accuracy[2], (p, accuracy))
+        for median in (1000, 6000, 20000):
+            flat = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform", f"behavior.reasoning_median_tokens={median}"]).behavior)
+            mixed = expected(SimConfig.from_sources(None, [f"behavior.reasoning_median_tokens={median}"]).behavior)
+            self.assertAlmostEqual(mixed["mean_reasoning_tokens"] / flat["mean_reasoning_tokens"], 1, delta=0.01)
+            lengths = [tier["reasoning_median_tokens"] for tier in mixed["tiers"]]
+            self.assertTrue(lengths[0] < lengths[1] < lengths[2], lengths)
+        for extreme in (0, 1):  # no spread is possible at the extremes
+            tiers_at = expected(SimConfig.from_sources(None, [f"behavior.p_correct={extreme}"]).behavior)["tiers"]
+            self.assertEqual({tier["p_correct"] for tier in tiers_at}, {float(extreme)})
+        self.assertAlmostEqual(uniform["mean_p_correct"], 0.65)
+
+    def test_mixed_correlates_samples_and_leaves_the_default_target_reachable(self):
+        flat = expected(SimConfig.from_sources(None, ["behavior.difficulty=uniform"]).behavior)
+        mixed = expected(SimConfig().behavior)
         self.assertAlmostEqual(flat["p_four_samples_all_wrong"], 0.35**4)
         self.assertGreater(mixed["p_four_samples_all_wrong"], 5 * flat["p_four_samples_all_wrong"])
+        # Hard questions are mostly unsolvable, yet a four-sample policy can still solve far more than 18 of 30.
+        self.assertGreater(30 * mixed["p_question_solvable_in_four_samples"], 24)
+        self.assertLess(mixed["p_question_solvable_in_four_samples"], flat["p_question_solvable_in_four_samples"])
+
+    def test_flat_knobs_do_not_override_an_explicit_tier_list(self):
+        config = SimConfig.from_sources(None, ["behavior.p_correct=0.2",
+                                               "behavior.difficulty=[{weight: 1, p_correct: 0.9}, {weight: 1}]"])
+        explicit, inherited = tiers(config.behavior)
+        self.assertEqual((explicit["behavior"].p_correct, inherited["behavior"].p_correct), (0.9, 0.2))
 
     def test_tier_overrides_inherit_everything_else_and_weights_normalize(self):
         config = SimConfig.from_sources(None, ["behavior.p_wrong_first=0.4", "behavior.reasoning_sigma=0.3",
@@ -147,7 +175,7 @@ class DifficultyTests(unittest.TestCase):
     def test_assignment_matches_the_weights_exactly_and_is_stable(self):
         eng = self.eng("behavior.difficulty=mixed")
         counts = [sum(1 for t in eng.tier_of.values() if t == i) for i in range(3)]
-        self.assertEqual(counts, [12, 12, 6])  # 0.4, 0.4, 0.2 of 30 questions
+        self.assertEqual(counts, [14, 10, 6])  # 7:5:3 of 30 questions
         # The same question has the same tier whichever subset of questions a run selects.
         again = self.eng("behavior.difficulty=mixed", key={k: v for k, v in list(self.KEY.items())[:30]})
         self.assertEqual(eng.tier_of, again.tier_of)
@@ -175,7 +203,8 @@ class DifficultyTests(unittest.TestCase):
         self.assertGreater(easy_acc, med_acc)
         self.assertGreater(med_acc, hard_acc)
         self.assertAlmostEqual(easy_acc, 0.92, delta=0.06)
-        self.assertAlmostEqual(hard_acc, 0.12, delta=0.1)
+        self.assertAlmostEqual(med_acc, 0.60, delta=0.08)
+        self.assertAlmostEqual(hard_acc, 0.10, delta=0.1)
 
     def test_prompts_outside_the_key_still_get_a_tier(self):
         eng = self.eng("behavior.difficulty=mixed")
@@ -195,7 +224,7 @@ class DifficultyTests(unittest.TestCase):
         self.assertEqual([t["name"] for t in report["tiers"]], ["easy", "medium", "hard"])
         listed = [i for v in report["questions_by_tier"].values() for i in v]
         self.assertEqual(sorted(listed), list(range(1, 11)))
-        self.assertEqual([len(v) for v in report["questions_by_tier"].values()], [4, 4, 2])
+        self.assertEqual([len(v) for v in report["questions_by_tier"].values()], [5, 3, 2])
 
 
 class DescribeTests(unittest.TestCase):
@@ -209,7 +238,9 @@ class DescribeTests(unittest.TestCase):
         self.assertIn("decode_tps: 60", text)
         self.assertIn("name: hard", text)
         self.assertIn("p_four_samples_all_wrong", text)
+        self.assertIn("p_question_solvable_in_four_samples", text)
         self.assertNotIn("&id", text)
+        self.assertNotIn("0.92026", text)  # tier values are rounded for reading
         with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
             describe.main(["--sim", "decode_tpz=1"])
 

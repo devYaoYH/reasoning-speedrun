@@ -76,8 +76,8 @@ qed view --attempts examples/attempts
 ### Try a policy without a GPU
 
 `--simulate` swaps vLLM and the GPU for an in-process mock whose decode speed,
-prefill speed, sequence cap, prefix cache, and the model's accuracy and reasoning
-length are knobs. The grader, scheduler and traces are real; no data download is
+prefill speed, sequence cap, prefix cache, and the model's accuracy, reasoning
+length and question difficulty are knobs. The grader, scheduler and traces are real; no data download is
 needed (30 synthetic questions ship in `src/qed/examples/`):
 
 ```bash
