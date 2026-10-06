@@ -4,6 +4,7 @@ import argparse
 import shutil
 import sys
 from pathlib import Path
+from qed.sim.config import SimConfig
 from qed.lib.datasets import add_dataset_args, default_benchmark_role
 from qed.lib.storage import add_benchmark_args, apply_benchmark_args
 
@@ -38,6 +39,22 @@ def parse_args(argv=None):
         help="Python with the grader extra installed (default: the current interpreter)",
     )
     parser.add_argument("--reuse-server", action="store_true")
+    parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Serve a mocked inference backend in-process instead of launching vLLM "
+        "(the grader, scheduler and traces stay real); see docs/usage.md#simulation",
+    )
+    parser.add_argument(
+        "--sim-config", type=Path, help="YAML/JSON simulation knobs (decode_tps, prefill_tps, ...)"
+    )
+    parser.add_argument(
+        "--sim",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override one simulation knob, e.g. --sim decode_tps=80 --sim behavior.p_correct=0.5",
+    )
     parser.add_argument("--vllm-port", type=int, default=8000)
     parser.add_argument("--grader-port", type=int, default=8077)
     parser.add_argument("--grader-cost", type=float, default=3.0)
@@ -120,6 +137,18 @@ def parse_args(argv=None):
         help="Enable CPU/engine/GPU profiling; retain buffered trace storage",
     )
     args = parser.parse_args(argv)
+    if (args.sim_config or args.sim) and not args.simulate:
+        parser.error("--sim-config/--sim require --simulate")
+    if args.simulate and args.reuse_server:
+        parser.error("--simulate replaces the inference server; it cannot be combined with --reuse-server")
+    if args.simulate:
+        try:
+            args.simulation = SimConfig.from_sources(args.sim_config, args.sim).to_dict()
+        except (ValueError, OSError, TypeError) as exc:
+            parser.error(f"Invalid simulation configuration: {exc}")
+        args.sim_config = str(args.sim_config) if args.sim_config else None
+    else:
+        args.simulation = None
     if args.profile:
         args.benchmark = False
         args.no_overhead_profile = args.no_gpu_telemetry = False

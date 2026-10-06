@@ -21,6 +21,7 @@ from qed.lib.setup import (
     read_profile,
 )
 from qed.lib.storage import AttemptArtifacts, DisabledGPUSampler
+from qed.sim import Simulation
 from qed.lib.summary import finalize
 from qed.lib.warmup import warm_inference
 from qed.scheduler import run_speedrun
@@ -66,6 +67,7 @@ async def run(args):
         engine_interval=args.engine_metrics_interval,
     )
     status, error, official_start = "initializing", None, None
+    simulation = None
     config = {
         **vars(args),
         **git_state(),
@@ -79,7 +81,11 @@ async def run(args):
         "gpu_scope": (
             "disabled for benchmark"
             if args.no_gpu_telemetry
-            else "device-level NVML; vLLM preallocates VRAM"
+            else (
+                "simulated device; no GPU"
+                if args.simulate
+                else "device-level NVML; vLLM preallocates VRAM"
+            )
         ),
         "python": sys.version,
     }
@@ -87,29 +93,33 @@ async def run(args):
     try:
         problems = local_dataset(args, config)
         profile_path, profile_text, profile = read_profile(args, output)
+        simulation = Simulation.create(args, config, profile) if args.simulate else None
         if not args.reuse_grader:
             ensure_free(args.grader_port)
-        if not args.reuse_server:
+        if not (args.reuse_server or args.simulate):
             ensure_free(args.vllm_port)
+        gpu_path = artifacts.gpu_path(output / "gpu.jsonl")
         sampler = (
             DisabledGPUSampler()
             if args.no_gpu_telemetry
-            else GPUSampler(
-                artifacts.gpu_path(output / "gpu.jsonl"),
-                args.gpu_interval,
-                args.gpu_device,
+            else (
+                simulation.gpu_sampler(gpu_path, args.gpu_interval)
+                if simulation
+                else GPUSampler(gpu_path, args.gpu_interval, args.gpu_device)
             )
         )
         await sampler.start()
         connections = args.parallelism * (args.rollouts + 1) + 8
+        limits = httpx.Limits(
+            max_connections=connections, max_keepalive_connections=connections
+        )
         async with httpx.AsyncClient(
             timeout=httpx.Timeout(
                 connect=10, read=args.question_timeout, write=30, pool=30
             ),
-            limits=httpx.Limits(
-                max_connections=connections, max_keepalive_connections=connections
-            ),
+            limits=limits,
             trust_env=False,
+            **(simulation.client_kwargs(limits) if simulation else {}),
         ) as client:
             await prepare_inference(
                 args, client, services, profiler, output, config, profile_path, profile
@@ -161,6 +171,8 @@ async def run(args):
         await profiler.stop()
         if sampler:
             sampler.stop()
+        if simulation:
+            atomic_json(output / "simulation.json", simulation.report())
         # Preserve the measured clock boundary: cleanup and buffered flush follow it.
         official_end = time.perf_counter()
         await finalize(

@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_naive",
-  "canonical_manifest_sha256": "b5de24757fd4248cc1e92818254100dcabea966c78804e933c775be013af80dc",
+  "canonical_manifest_sha256": "902b819a8b6ada123409cc5d3f8eee78651055ea576e465d8052d69a04609f8b",
   "policy": "Complete fan-out of every sample of every question at once; candidates only from the final box of naturally ended responses; no continuations, rounds or barriers",
-  "change_reason": "Rename package to qed",
+  "change_reason": "Add --simulate: simulated inference backend",
   "sha256": {
     "extensions/naive/__init__.py": "92b14d300c49dc3ee02cb1ad53dcf5f92c17b7b0941026aa35b9a97d4500c1a1",
     "extensions/naive/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
     "extensions/naive/cli.py": "3952f85fc89738395d13b6c7f2c38c69e25d8ae1dd36729cf8ef8879215949d7",
     "extensions/naive/integrity.py": "ff1874897c1b866ff2b16472d7849a78fa1b62167c0c81ffe9483d9abf3324aa",
     "extensions/naive/policy.py": "231a23442ad2ee32ac4464eee246ffc53b00e5905c34b63f2c4f31d234165c1d",
-    "lib/policy_runtime.py": "8c1337a9ddc8a194e388e2a1190b3bee8e4e2aea81b063344a9697f18f3cccf7"
+    "lib/policy_runtime.py": "1b48ce4f329ca0b8231e2870a06d1a8b1f8bc8281fa281e021df81df70512c24"
   }
 }

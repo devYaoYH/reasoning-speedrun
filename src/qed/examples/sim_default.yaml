@@ -1,0 +1,28 @@
+# Every simulation knob at its default. Copy, edit, and pass with --sim-config.
+# Override single values on the command line: --sim decode_tps=80 --sim behavior.p_correct=0.5
+
+decode_tps: 100.0            # decode tokens/s of each running request (independent of load)
+prefill_tps: 8000.0          # uncached prompt tokens/s of each request
+max_num_seqs: 256            # running sequences; more requests wait FIFO (vLLM max-num-seqs)
+stream_interval_tokens: 8    # tokens per streamed chunk
+prefix_cache: true           # exact-prefix reuse across requests (continuations hit it)
+block_tokens: 16             # prefix-cache block size
+
+# Defaults come from the model's launch profile when unset.
+# max_model_len: 65536
+# gpu_memory_utilization: 0.95
+
+vram_total_mib: 81920        # A100 80GB
+weights_mib: 2400            # resident weights, subtracted before sizing the KV pool
+kv_bytes_per_token: 36864    # 2 * layers * kv_heads * head_dim * bytes (3B-class model)
+
+behavior:                    # the simulated *model*
+  seed: 0
+  p_correct: 0.65            # chance a sample's final answer equals the answer key
+  reasoning_median_tokens: 6000   # lognormal length of the reasoning
+  reasoning_sigma: 0.8
+  reasoning_min_tokens: 200
+  answer_at: [0.45, 0.95]    # when the answer first appears, as a fraction of the reasoning
+  p_wrong_first: 0.15        # chance of a wrong tentative answer before the final one
+  final_tokens: 40           # tokens of the final (non-reasoning) response
+  # answers: path/to/key.jsonl   # default: the run's own answer key

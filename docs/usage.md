@@ -219,6 +219,93 @@ latency, TTFT, end-to-end settlement latency and prefix-cache observations when
 reported by vLLM. Full streams, service logs and grader audits are large; keep them out of Git.
 Use `qed.lib.metadata ATTEMPT_DIRECTORY` to validate metadata.
 
+## Simulation
+
+`--simulate` replaces the inference server and the GPU with a mocked backend that
+runs inside the `qed` process. Everything else is the real thing: the policy
+scheduler, streaming extraction, deduplication, exact-token continuations, the
+toll-gated grader (a real subprocess), traces and the viewer. Use it to develop
+and compare policies without a GPU, and to ask how a policy behaves under serving
+characteristics you choose.
+
+```bash
+# No GPU, no downloaded data: 30 synthetic questions with a random integer key.
+qed --simulate --grader-config src/qed/examples/synthetic_grader.yaml \
+    --system-prompt-file src/qed/examples/integer_prompt.txt --target-correct 18
+
+# Change the serving model; compare policies under the same knobs.
+qed --simulate --version naive --sim decode_tps=60 --sim max_num_seqs=32 ...
+qed --simulate --version v1.6 --sim-config my_sim.yaml ...
+```
+
+`--sim KEY=VALUE` (repeatable, dotted for `behavior.*`) overrides `--sim-config FILE`
+(YAML or JSON), which overrides the defaults; unknown keys are rejected with the list
+of valid ones. [`examples/sim_default.yaml`](../src/qed/examples/sim_default.yaml)
+lists every knob at its default. A run is also real wall-clock time: a 60-second
+simulated solve takes 60 seconds, against the real grader's 3 s toll.
+
+### Serving knobs
+
+| Knob | Default | Meaning |
+| --- | --- | --- |
+| `decode_tps` | 100 | Decode tokens/s of **each** running request, independent of load |
+| `prefill_tps` | 8000 | Uncached prompt tokens/s of each request; sets TTFT with the queue |
+| `max_num_seqs` | 256 | Running sequences; further requests wait FIFO (queue time, `num_requests_waiting`) |
+| `stream_interval_tokens` | 8 | Tokens per streamed chunk |
+| `prefix_cache`, `block_tokens` | true, 16 | vLLM-style chained block hashes: exact continuations and shared system prompts hit the cache; `reset_prefix_cache` clears it |
+| `max_model_len`, `gpu_memory_utilization` | from the launch profile | Context limit and the VRAM fraction |
+| `vram_total_mib`, `weights_mib`, `kv_bytes_per_token` | 81920, 2400, 36864 | Size the KV pool; reported in `/metrics`, GPU samples and `simulation.json` |
+
+### The simulated model
+
+| `behavior.` knob | Default | Meaning |
+| --- | --- | --- |
+| `p_correct` | 0.65 | Chance a sample's final answer equals the answer key |
+| `reasoning_median_tokens`, `reasoning_sigma`, `reasoning_min_tokens` | 6000, 0.8, 200 | Lognormal reasoning length |
+| `answer_at` | [0.45, 0.95] | Where the answer first appears, as a fraction of the reasoning |
+| `p_wrong_first` | 0.15 | Chance of a wrong tentative answer before the final one (the cost of optimism) |
+| `final_tokens` | 40 | Final response length after the reasoning |
+| `seed`, `answers` | 0, run's own key | Trajectory seed; JSONL of `problem`/`answer` to use instead |
+
+Each request gets a deterministic trajectory from its request seed: filler
+reasoning with answers planted in the forms the real extractor recognises (a closed
+box, an `Answer:` line, an "answer is N" clause), then a final response ending in a
+box. Capped requests finish with `length`; continuing from the exact token IDs
+resumes the same trajectory, so v1's continuations, v1.6's long continuation and
+naive's final-only extraction all see realistic behavior. The backend implements
+chat/completions streaming with `return_token_ids` and continuous usage (including
+cached tokens), `/tokenize`, `/v1/models`, `/metrics` (the gauges and counters the
+profiler scrapes) and `/reset_prefix_cache`. With `--profile`, GPU samples report
+the preallocated VRAM (vLLM reserves its pool) and 100% utilization while any
+sequence runs. `simulation.json` in the attempt records requests, tokens, peak
+running/waiting sequences, queue/prefill/decode seconds, prefix-cache hit fraction
+and KV usage.
+
+### What a simulated result is not
+
+- **Not a hardware measurement.** Attempts are tagged: `config.json` has
+  `simulated: true` and the resolved knobs, metadata carries a `simulation` block
+  and `gpu.device: simulated`, the viewer labels them, and they never share a
+  cluster or comparison family with real attempts.
+- **Load-independent rates.** Every request decodes at `decode_tps` however many
+  are running, so concurrency never slows decoding and contention appears only as
+  `max_num_seqs` queueing. Naive's 120-stream fan-out is therefore flattered.
+- **The model is given the answer key** to sample correct answers (from
+  `--grader-config`, the fetched AIME file, or `behavior.answers`). The solver side
+  stays gold-free; only the mock "knows" what a model of that accuracy would say.
+  AIME needs `qed fetch-data`; `--reuse-grader` needs `behavior.answers`.
+- **In process.** The simulator shares the event loop and CPU with the runner, so
+  runner-overhead profiling includes simulator work.
+
+### Extending it
+
+`qed.sim.engine.StaticRates` is the extension point: `prefill_seconds` and
+`decode_seconds` receive the current load (running sequences, waiting, live tokens).
+A finer model replaces it to make decode depend on batch size, memory bandwidth and
+arithmetic intensity, GPU profiles or kernel utilization, and `Engine.generate` is
+where KV-capacity admission and preemption would go. The transport, scripted model,
+runner and recording do not change.
+
 ## Package layout
 
 ```text
@@ -233,6 +320,7 @@ src/qed/
   prompts/, presets/, profiles/   Explicit configuration and reference vLLM profiles
   extensions/v1_6/        Versioned policy: coverage barrier, then a shared slot pool
   extensions/naive/       Baseline: complete fan-out, final answers only
+  sim/                    --simulate: in-process mock of the vLLM server and GPU
   viewer/                 Browser viewer for saved attempts and aggregate results
   analysis/               Offline plots over saved attempts
   fetch_data.py           Verified benchmark downloader

@@ -140,7 +140,7 @@ def build_metadata(folder, config=None):
                     total = json.loads(line).get("vram_total_mib")
                     if total is not None:
                         break
-    return {
+    value = {
         "$schema": "https://github.com/devYaoYH/reasoning-speedrun/blob/main/src/qed/metadata.schema.json",
         "schema_version": 1,
         "attempt_id": folder.name,
@@ -168,7 +168,7 @@ def build_metadata(folder, config=None):
             "linear_backend": launch.get("linear-backend"),
         },
         "gpu": {
-            "device": None,
+            "device": "simulated" if config.get("simulated") else None,
             "device_count": launch.get("tensor-parallel-size"),
             "total_vram_mib": total,
             "memory_utilization": launch.get("gpu-memory-utilization"),
@@ -206,6 +206,10 @@ def build_metadata(folder, config=None):
             ],
         },
     }
+    if config.get("simulated"):
+        # A simulated attempt must never be mistaken for a measurement on hardware.
+        value["simulation"] = config.get("simulation")
+    return value
 
 
 def main():

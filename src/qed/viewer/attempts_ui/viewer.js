@@ -48,7 +48,7 @@ async function refresh(requested = state.id) {
     for (const item of inventory.attempts) {
       const option = document.createElement('option');
       option.value = item.id;
-      option.textContent = `${item.id} · AIME ${item.benchmark_year ?? 2025} · ${item.model || 'unknown model'} · ${item.status} · ${number(item.solved)}/${number(item.questions)} solved`;
+      option.textContent = `${item.id}${item.simulated ? ' · SIMULATED' : ''} · AIME ${item.benchmark_year ?? 2025} · ${item.model || 'unknown model'} · ${item.status} · ${number(item.solved)}/${number(item.questions)} solved`;
       select.append(option);
     }
     $('#empty').hidden = inventory.attempts.length > 0;
@@ -84,7 +84,7 @@ function renderOverview() {
   const usage = rollouts.filter(r => r.usage?.completion_tokens != null);
   const solved = summary?.solved ?? questions.filter(q => q.status === 'solved').length;
   const queries = questions.filter(q => q.verification_count != null);
-  $('#model-name').textContent = `AIME ${state.overview.attempt.benchmark_year ?? 2025} · ${config.model || 'Unknown model'}`;
+  $('#model-name').textContent = `AIME ${state.overview.attempt.benchmark_year ?? 2025} · ${config.model || 'Unknown model'}${config.simulated ? ' · simulated backend (not a hardware measurement)' : ''}`;
   $('#attempt-date').textContent = attempt.started_at_utc ? new Date(attempt.started_at_utc).toLocaleString() : 'No official start recorded';
   $('#attempt-status').textContent = `${attempt.status} · ${summary?.strategy || config.strategy || 'parallel'} strategy`;
   $('#overview-title').textContent = `${solved} of ${questions.length} verified`;

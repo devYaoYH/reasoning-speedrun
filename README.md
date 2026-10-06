@@ -19,6 +19,7 @@ they save, and concurrency only pays until the GPU is contended.
 | --- | --- |
 | Real runs (`qed`) | How long does a policy actually take to reach N verified answers on your GPU? Per-request timestamps, token IDs, verdict times, GPU/engine telemetry |
 | Policies (`--version`) | v1 (round barriers), v1.6 (coverage barrier + slot pool), **naive** (complete fan-out, final answers only) |
+| Simulated backend (`--simulate`) | How does a policy behave under serving characteristics you choose (decode and prefill speed, sequence cap, prefix cache, model accuracy and length), with no GPU? |
 | Viewer (`qed view`) | Trajectories, verdict timelines, GPU samples, matched-control comparisons |
 
 The reference task is **time to 18 distinct grader-confirmed answers on AIME 2025
@@ -71,6 +72,22 @@ and writes `attempts/<timestamp>/` (`summary.json` has `target_reached` and
 ```bash
 qed view --attempts examples/attempts
 ```
+
+### Try a policy without a GPU
+
+`--simulate` swaps vLLM and the GPU for an in-process mock whose decode speed,
+prefill speed, sequence cap, prefix cache, and the model's accuracy and reasoning
+length are knobs. The grader, scheduler and traces are real; no data download is
+needed (30 synthetic questions ship in `src/qed/examples/`):
+
+```bash
+qed --simulate --version naive --grader-config src/qed/examples/synthetic_grader.yaml \
+    --system-prompt-file src/qed/examples/integer_prompt.txt --sim decode_tps=60
+```
+
+Simulated attempts are tagged and never mixed with hardware results; see
+[Simulation](docs/usage.md#simulation) for the knobs and the caveats (notably:
+load-independent decode rates).
 
 ### Your own questions
 

@@ -167,7 +167,9 @@ async def prepare_grader(args, client, services, profiler, output, config, probl
 async def prepare_inference(
     args, client, services, profiler, output, config, profile_path, profile
 ):
-    if not args.reuse_server:
+    if args.simulate:
+        server = None  # the simulated backend answers in process; no GPU or vLLM
+    elif not args.reuse_server:
         assert_gpu_idle(args.gpu_device)
         gpu_warmup = services.launch(
             [

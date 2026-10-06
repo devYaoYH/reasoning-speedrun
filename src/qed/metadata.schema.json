@@ -515,6 +515,13 @@
           }
         }
       }
+    },
+    "simulation": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Present only for attempts run with --simulate: the simulation configuration (resolved). Results from simulated attempts are not hardware measurements."
     }
   }
 }

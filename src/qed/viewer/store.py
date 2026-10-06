@@ -77,6 +77,7 @@ class AttemptStore:
                 "benchmark_id": dataset_record(config)["id"],
                 "benchmark_year": dataset_record(config)["year"],
                 "benchmark_role": dataset_record(config)["role"],
+                "simulated": bool(config.get("simulated")),
                 "status": summary.get("status", "incomplete"),
                 "solved": summary.get("solved"),
                 "questions": len(config.get("question_indices") or config.get("questions") or []) or

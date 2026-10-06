@@ -64,7 +64,8 @@ def assignment(metadata, config):
               'dataset': {key: dataset[key] for key in ('id', 'year', 'name')},
               'question_indices': metadata['controls']['question_indices'],
               'profile': profile, 'solving': {key: config.get(key) for key in SOLVING_KEYS},
-              'prompt_sha256': metadata['controls']['hyperparameters'].get('system_prompt_sha256')}
+              'prompt_sha256': metadata['controls']['hyperparameters'].get('system_prompt_sha256'),
+              'simulation': metadata.get('simulation')}
     recorded = {key: value for key, value in config.items() if key not in TRANSIENT_KEYS}
     matched = {'family': family, 'config': recorded, 'dataset': dataset,
                'runner': metadata['runner'], 'profile_sha256': metadata['provenance'].get('profile_sha256')}
@@ -81,7 +82,8 @@ def assignment(metadata, config):
     utilization = profile.get('gpu-memory-utilization')
     envelope = f'{utilization:.0%} VRAM' if isinstance(utilization, (int, float)) else 'VRAM unrecorded'
     label = (f"{model_label} · {policy} / {schedule} {config.get('parallelism', '?')}×{config.get('rollouts', '?')} · "
-             f"{budget(config.get('first_pass_max_tokens', config.get('max_tokens')))}→{budget(config.get('max_tokens'))} · {envelope} · {backend}")
+             f"{budget(config.get('first_pass_max_tokens', config.get('max_tokens')))}→{budget(config.get('max_tokens'))} · {envelope} · {backend}"
+             + (' · SIMULATED' if metadata.get('simulation') else ''))
     return {'family_id': fingerprint(family, 'family-'), 'label': label,
             'replication_id': fingerprint(matched, 'repeat-'),
             'recorded_controls': flatten(matched)}

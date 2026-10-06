@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_v1_6",
-  "canonical_manifest_sha256": "b5de24757fd4248cc1e92818254100dcabea966c78804e933c775be013af80dc",
+  "canonical_manifest_sha256": "902b819a8b6ada123409cc5d3f8eee78651055ea576e465d8052d69a04609f8b",
   "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
   "previous_source_commit": "51611b5e",
-  "change_reason": "Rename package to qed",
+  "change_reason": "Add --simulate: simulated inference backend",
   "sha256": {
     "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
     "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
@@ -14,7 +14,7 @@
     "extensions/v1_6/integrity.py": "36091e44e5d97d38492c9dc2c25af8b785198758de0ad3b9f9a9b0ec5cafea6e",
     "extensions/v1_6/policy.json": "0aa62e8cf2282097680d423b0f5f0dbeaeab2c319b91d8ce3592ddeffed7e9c7",
     "extensions/v1_6/policy.py": "32e4b2a045ff8cc096cbb4a1daf8b348a6d6c73936fe4716e8356f6789faaccc",
-    "lib/policy_runtime.py": "8c1337a9ddc8a194e388e2a1190b3bee8e4e2aea81b063344a9697f18f3cccf7",
+    "lib/policy_runtime.py": "1b48ce4f329ca0b8231e2870a06d1a8b1f8bc8281fa281e021df81df70512c24",
     "profiles/models/r0b0tlab/VibeThinker-3B-NVFP4/vllm-v1_6-long64k.yaml": "bc716a4d4a26df0eacc1891202840e4869f39cf31a544dfc7cc8c942c5405c0a"
   }
 }

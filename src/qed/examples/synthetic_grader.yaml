@@ -1,0 +1,13 @@
+# 30 synthetic questions with random integer answers: a licence-free dataset for
+# `qed --simulate` demos and tests (the simulated model reads this answer key).
+dataset:
+  source: ../examples/synthetic_30.jsonl
+  format: jsonl
+  idx_field: problem_idx
+  problem_field: problem
+  gold_field: answer
+  id: synthetic_30
+  split: test
+cost_c: 3.0
+host: 127.0.0.1
+port: 8077
