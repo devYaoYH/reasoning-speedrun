@@ -79,7 +79,7 @@ class FetchDataTests(unittest.TestCase):
 
     def test_missing_data_names_the_fetch_command(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {"SPEEDRUN_DATA": tmp}):
-            with self.assertRaisesRegex(FileNotFoundError, "fetch_data"):
+            with self.assertRaisesRegex(FileNotFoundError, "fetch-data"):
                 aime.dataset_provenance(2025)
 
     def test_manifests_pin_every_year(self):

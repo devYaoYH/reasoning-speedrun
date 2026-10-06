@@ -1,6 +1,6 @@
 """Download revision-pinned MathArena AIME data into the user data directory.
 
-    python -m reasoning_speedrun.fetch_data --year 2025
+    reasoning-speedrun fetch-data --year 2025
 
 The benchmark files are licensed upstream (CC BY-NC-SA 4.0) and are therefore not
 bundled with this package. The pinned revisions, Parquet hashes and output hashes

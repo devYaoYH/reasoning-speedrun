@@ -20,6 +20,6 @@ for behavior. Essentials for agents:
 - Keep experiment output (`attempts/`, full SSE streams, grader audits, logs,
   weights, virtualenvs) out of Git; `examples/attempts/` holds the single curated
   sample. Never commit the AIME benchmark files (CC BY-NC-SA 4.0): fetch them with
-  `python -m reasoning_speedrun.fetch_data`.
+  `reasoning-speedrun fetch-data`.
 - Report unmet targets honestly and do not rank attempts that did not reach the
   target. Measurements need matched datasets, seeds, hardware and timing boundary.

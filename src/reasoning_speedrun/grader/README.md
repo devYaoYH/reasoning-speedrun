@@ -34,7 +34,7 @@ need `pandas`/`datasets`; JSONL and CSV need nothing more.)
 
 ## Start it
 Point the server at a dataset with a config YAML (`GRADER_CONFIG`). Fetch AIME data
-first (`python -m reasoning_speedrun.fetch_data --year 2025`, written to
+first (`reasoning-speedrun fetch-data --year 2025`, written to
 `~/.cache/reasoning_speedrun/grader/aime_2025.jsonl`) or use your own JSONL:
 ```bash
 cp "$GRADER/config.yaml" my_grader.yaml   # edit dataset.source

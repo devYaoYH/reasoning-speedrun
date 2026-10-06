@@ -3,7 +3,7 @@
 import argparse
 import asyncio
 import hashlib
-from importlib import metadata
+from importlib import import_module, metadata
 import json
 from pathlib import Path
 import signal
@@ -67,8 +67,16 @@ async def execute(args):
     await run(args)
 
 
+SUBCOMMANDS = {
+    "view": ("reasoning_speedrun.viewer.server", "Browse saved attempts in a local viewer"),
+    "fetch-data": ("reasoning_speedrun.fetch_data", "Download the pinned benchmark files"),
+}
+
+
 def main(argv=None):
     values = sys.argv[1:] if argv is None else argv
+    if values and values[0] in SUBCOMMANDS:
+        return import_module(SUBCOMMANDS[values[0]][0]).main(values[1:])
     selection = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     selection.add_argument("--version", choices=("v1", *EXTENSIONS), default=CANONICAL)
     selected, remaining = selection.parse_known_args(values)
@@ -76,6 +84,8 @@ def main(argv=None):
         return launch_extension(selected.version, remaining)
     if "--help" in remaining or "-h" in remaining:
         print(
+            "Subcommands: view (attempt viewer), fetch-data (benchmark files); "
+            "see `reasoning-speedrun view --help`\n"
             "Policy selection: --version {v1,v1.6,naive}\n"
             "Configuration: --preset FILE --system-prompt-file FILE\n"
             "Explicit flags override preset defaults. Help launches no services."

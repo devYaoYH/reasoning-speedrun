@@ -1,7 +1,9 @@
 # Usage guide
 
 Everything below uses the installed `reasoning-speedrun` command (equivalently
-`python -m reasoning_speedrun`). Run it from a working directory of your choice:
+`python -m reasoning_speedrun`), which is the only CLI: `reasoning-speedrun` runs an
+attempt, `reasoning-speedrun view` browses saved attempts and
+`reasoning-speedrun fetch-data` downloads the benchmark files. Run it from a working directory of your choice:
 attempts are written to `./attempts/` (override with `SPEEDRUN_HOME`). A GPU,
 model weights, a vLLM install and the `grader` extra are prerequisites; see
 [installation](../README.md#install).
@@ -139,7 +141,7 @@ The downloader resolves each source at its pinned revision and verifies hashes:
 
 ```bash
 pip install 'reasoning-speedrun[data]'
-python -m reasoning_speedrun.fetch_data --year 2025            # repeat --year for more
+reasoning-speedrun fetch-data --year 2025                   # repeat --year for more
 reasoning-speedrun --questions 1 2 3 --target-correct 2 --parallelism 3
 ```
 
@@ -217,33 +219,6 @@ latency, TTFT, end-to-end settlement latency and prefix-cache observations when
 reported by vLLM. Full streams, service logs and grader audits are large; keep them out of Git.
 Use `reasoning-speedrun.lib.metadata ATTEMPT_DIRECTORY` to validate metadata.
 
-## Replay and GPU contention
-
-`python -m reasoning_speedrun.simulate ATTEMPT_DIR` (or `speedrun-simulate`) replays
-a saved attempt deterministically. It needs only files every run saves
-(`config.json`, `trace/*/question.json`, `trace/*/verification.jsonl`,
-`solved.jsonl`) and contacts neither a model nor a grader.
-
-| Flag | Meaning |
-| --- | --- |
-| *(none)* | Replay the recorded start times: reproduces the original time to target (the reproduction check) |
-| `--slots N` | Bound concurrent streams. Trajectories are admitted FIFO by recorded start; barrier gaps between a trajectory's segments are removed; a solved question's queued trajectories are skipped. A large N is complete fan-out of the recorded trajectories |
-| `--cost S` | Verifier seconds per check (FIFO, one worker, duplicates removed before grading) |
-| `--extraction early\|final` | `early` uses every recorded candidate at its recorded time; `final` keeps only each trajectory's last candidate, available when the trajectory ends |
-| `--censored drop\|lower_bound` | For `final`: streams cancelled in the original run have unknown final answers; drop them (pessimistic) or let them arrive at their cancel time (a lower bound) |
-| `--no-cancel` | Keep a question's streams running after it is solved |
-| `--compare` | Standard table: reproduction, early, and both final-only bounds |
-
-Output includes time to target, checks (and wrong checks), peak/mean concurrent
-streams, stream-seconds, stream-seconds spent on questions that were never solved,
-and the concurrency step series (`simulate()` returns it as `concurrency`).
-
-What it does not do: model decode slowing down with batch size (durations are
-replayed as recorded), invent verdicts for candidates the original run never
-checked (they are counted as `unresolved_candidates`), or recover candidates that
-duplicate suppression hid in the recording. For contention measured rather than
-replayed, run with `--profile` and inspect the GPU and engine samples in the viewer.
-
 ## Package layout
 
 ```text
@@ -258,7 +233,6 @@ src/reasoning_speedrun/
   prompts/, presets/, profiles/   Explicit configuration and reference vLLM profiles
   extensions/v1_6/        Versioned policy: coverage barrier, then a shared slot pool
   extensions/naive/       Baseline: complete fan-out, final answers only
-  simulate.py             Deterministic replay of saved attempts
   viewer/                 Browser viewer for saved attempts and aggregate results
   analysis/               Offline plots over saved attempts
   fetch_data.py           Verified benchmark downloader

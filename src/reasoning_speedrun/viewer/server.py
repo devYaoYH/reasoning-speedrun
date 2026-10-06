@@ -5,7 +5,7 @@ intervention comparisons and measured time to target. The server reads an
 attempts directory (default ``$SPEEDRUN_HOME/attempts`` or ./attempts), makes no
 inference calls and binds to 127.0.0.1 by default:
 
-    python -m reasoning_speedrun.viewer --attempts examples/attempts
+    reasoning-speedrun view --attempts examples/attempts
 """
 from __future__ import annotations
 

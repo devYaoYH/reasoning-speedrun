@@ -6,7 +6,7 @@ them into `$SPEEDRUN_DATA` (default `~/.cache/reasoning_speedrun`) with:
 
 ```bash
 pip install 'reasoning-speedrun[data]'
-python -m reasoning_speedrun.fetch_data --year 2024 --year 2025 --year 2026
+reasoning-speedrun fetch-data --year 2024 --year 2025 --year 2026
 ```
 
 The downloader resolves each source at its pinned Hugging Face revision and

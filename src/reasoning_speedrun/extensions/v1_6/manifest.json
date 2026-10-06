@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_v1_6",
-  "canonical_manifest_sha256": "7ee9273526eb7c8f44b0d3191ac86de9fe00ce8daeb858bb56d04a8a9ac10854",
+  "canonical_manifest_sha256": "e5a83afe9292afc30a8e751a71b1be0bed740faafdfad132368a25a50d7c4ad8",
   "policy": "Initial one-per-question 8K coverage/check barrier, then question-count slot pool; four fresh samples; one exact-ID continuation to cumulative64K or served context/natural EOF",
   "previous_source_commit": "51611b5e",
-  "change_reason": "Add naive baseline policy, simulator hook and docs",
+  "change_reason": "Single CLI with view/fetch-data subcommands; drop simulator",
   "sha256": {
     "extensions/v1_6/__init__.py": "de003e834c837e9e369c34413c1d2e24ba198429c18721023dfa75459b8e36e0",
     "extensions/v1_6/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",

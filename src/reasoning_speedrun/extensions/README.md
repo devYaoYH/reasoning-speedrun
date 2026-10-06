@@ -12,8 +12,7 @@ defaults, presets and flags (`reasoning-speedrun --version v1.6 --help`).
 | [naive](naive/README.md) | `reasoning_speedrun.extensions.naive` | **Complete fan-out**: every sample of every question at once, bounded only by the server | **Final only**: last integer box of a naturally ended response |
 
 The naive policy is the baseline the others are compared against: it shows what
-bounded parallelism and early exit buy. `python -m reasoning_speedrun.simulate`
-replays any saved attempt under alternative assumptions (see the usage guide).
+bounded parallelism and early exit buy.
 
 ## The policy contract
 

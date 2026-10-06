@@ -139,6 +139,14 @@ class PackageBoundaryTests(unittest.TestCase):
             cli.main(["--help"])
             launch.assert_called_once_with("v1.6", ["--help"])
 
+    def test_subcommands_route_to_viewer_and_data_fetch(self):
+        with patch("reasoning_speedrun.viewer.server.main") as view:
+            cli.main(["view", "--attempts", "x", "--port", "1"])
+            view.assert_called_once_with(["--attempts", "x", "--port", "1"])
+        with patch("reasoning_speedrun.fetch_data.main") as fetch:
+            cli.main(["fetch-data", "--year", "2025"])
+            fetch.assert_called_once_with(["--year", "2025"])
+
     def test_installed_layout_runs_from_any_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = subprocess.run(

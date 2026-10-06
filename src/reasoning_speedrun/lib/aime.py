@@ -58,7 +58,7 @@ def read_rows(path):
     if not path.is_file():
         raise FileNotFoundError(
             f"{path} is missing; fetch the pinned dataset with "
-            "`python -m reasoning_speedrun.fetch_data --year YEAR` "
+            "`reasoning-speedrun fetch-data --year YEAR` "
             "(requires `pip install reasoning-speedrun[data]`)"
         )
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]

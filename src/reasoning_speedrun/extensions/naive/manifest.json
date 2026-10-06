@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "core_id": "runner_core_naive",
-  "canonical_manifest_sha256": "7ee9273526eb7c8f44b0d3191ac86de9fe00ce8daeb858bb56d04a8a9ac10854",
+  "canonical_manifest_sha256": "e5a83afe9292afc30a8e751a71b1be0bed740faafdfad132368a25a50d7c4ad8",
   "policy": "Complete fan-out of every sample of every question at once; candidates only from the final box of naturally ended responses; no continuations, rounds or barriers",
-  "change_reason": "Add naive baseline policy, simulator hook and docs",
+  "change_reason": "Single CLI with view/fetch-data subcommands; drop simulator",
   "sha256": {
     "extensions/naive/__init__.py": "92b14d300c49dc3ee02cb1ad53dcf5f92c17b7b0941026aa35b9a97d4500c1a1",
     "extensions/naive/__main__.py": "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a",
