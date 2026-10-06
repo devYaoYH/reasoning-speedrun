@@ -2,7 +2,7 @@
 from copy import deepcopy
 import unittest
 
-from reasoning_speedrun.viewer.clusters import assignment, summarize_clusters
+from qed.viewer.clusters import assignment, summarize_clusters
 
 
 class AttemptClusterTests(unittest.TestCase):

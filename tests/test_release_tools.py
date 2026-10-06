@@ -15,10 +15,10 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 
-from reasoning_speedrun import fetch_data
-from reasoning_speedrun.analysis import plot_attempt
-from reasoning_speedrun.lib import aime
-from reasoning_speedrun.lib.setup import resolve_profile
+from qed import fetch_data
+from qed.analysis import plot_attempt
+from qed.lib import aime
+from qed.lib.setup import resolve_profile
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/attempts/20261004T220514.018752Z"
 
@@ -78,7 +78,7 @@ class FetchDataTests(unittest.TestCase):
             self.run_fetch(manifest, content)
 
     def test_missing_data_names_the_fetch_command(self):
-        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {"SPEEDRUN_DATA": tmp}):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {"QED_DATA": tmp}):
             with self.assertRaisesRegex(FileNotFoundError, "fetch-data"):
                 aime.dataset_provenance(2025)
 

@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const context = vm.createContext({document:{addEventListener(){}}});
-vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/reasoning_speedrun/viewer/results_ui/viewer.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/qed/viewer/results_ui/viewer.js'),'utf8'),context);
 function row(id, start, latency, official=start) {
   return {id,attempt_started_at_utc:start,started_at_utc:official,time_to_18_s:latency,
     metadata:{label:id,intervention:{label:'test intervention'}}};

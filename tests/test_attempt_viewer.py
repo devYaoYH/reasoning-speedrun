@@ -8,8 +8,8 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from reasoning_speedrun.viewer.store import AttemptStore, json_lines
-from reasoning_speedrun.viewer import server as viewer_server
+from qed.viewer.store import AttemptStore, json_lines
+from qed.viewer import server as viewer_server
 
 
 class AttemptViewerTests(unittest.TestCase):

@@ -20,16 +20,16 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import yaml
 
-from reasoning_speedrun import cli, scheduler, question
-from reasoning_speedrun.integrity import verify_core
-from reasoning_speedrun.lib.common import PACKAGE, atomic_json
-from reasoning_speedrun.lib.continuations import continuation_prefix
-from reasoning_speedrun.lib.extraction import CandidateDetector
-from reasoning_speedrun.lib.grader_questions import question_digest
-from reasoning_speedrun.lib.metrics import AttemptProfiler
-from reasoning_speedrun.lib.setup import local_dataset, prepare_grader
-from reasoning_speedrun.lib.storage import AttemptArtifacts, DisabledGPUSampler
-from reasoning_speedrun.lib.metadata import validate_metadata
+from qed import cli, scheduler, question
+from qed.integrity import verify_core
+from qed.lib.common import PACKAGE, atomic_json
+from qed.lib.continuations import continuation_prefix
+from qed.lib.extraction import CandidateDetector
+from qed.lib.grader_questions import question_digest
+from qed.lib.metrics import AttemptProfiler
+from qed.lib.setup import local_dataset, prepare_grader
+from qed.lib.storage import AttemptArtifacts, DisabledGPUSampler
+from qed.lib.metadata import validate_metadata
 from tests.helpers import Stream, capped, chunk
 
 
@@ -73,9 +73,9 @@ class PackageBoundaryTests(unittest.TestCase):
             )
 
     def test_shipped_manifests_match_source(self):
-        from reasoning_speedrun.extensions.v1_6.integrity import verify_core as v1_6
+        from qed.extensions.v1_6.integrity import verify_core as v1_6
 
-        with patch.dict(os.environ, {"SPEEDRUN_STRICT_INTEGRITY": "1"}):
+        with patch.dict(os.environ, {"QED_STRICT_INTEGRITY": "1"}):
             self.assertEqual(len(verify_core(PACKAGE)), 64)
             self.assertEqual(len(v1_6(PACKAGE)), 64)
 
@@ -91,17 +91,17 @@ class PackageBoundaryTests(unittest.TestCase):
                 },
             )
             (root / "__init__.py").write_text("changed")
-            with patch.dict(os.environ, {"SPEEDRUN_STRICT_INTEGRITY": ""}), patch(
+            with patch.dict(os.environ, {"QED_STRICT_INTEGRITY": ""}), patch(
                 "sys.stderr", new_callable=io.StringIO
             ) as err:
                 verify_core(root)
             self.assertIn("source drift", err.getvalue())
-            with patch.dict(os.environ, {"SPEEDRUN_STRICT_INTEGRITY": "1"}):
+            with patch.dict(os.environ, {"QED_STRICT_INTEGRITY": "1"}):
                 with self.assertRaisesRegex(RuntimeError, "source drift"):
                     verify_core(root)
 
     def test_snapshot_excludes_environments_and_other_packages(self):
-        from reasoning_speedrun.tools import pin
+        from qed.tools import pin
 
         with tempfile.TemporaryDirectory() as tmp:
             package = Path(tmp)
@@ -140,17 +140,17 @@ class PackageBoundaryTests(unittest.TestCase):
             launch.assert_called_once_with("v1.6", ["--help"])
 
     def test_subcommands_route_to_viewer_and_data_fetch(self):
-        with patch("reasoning_speedrun.viewer.server.main") as view:
+        with patch("qed.viewer.server.main") as view:
             cli.main(["view", "--attempts", "x", "--port", "1"])
             view.assert_called_once_with(["--attempts", "x", "--port", "1"])
-        with patch("reasoning_speedrun.fetch_data.main") as fetch:
+        with patch("qed.fetch_data.main") as fetch:
             cli.main(["fetch-data", "--year", "2025"])
             fetch.assert_called_once_with(["--year", "2025"])
 
     def test_installed_layout_runs_from_any_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = subprocess.run(
-                [sys.executable, "-m", "reasoning_speedrun", "--help"],
+                [sys.executable, "-m", "qed", "--help"],
                 cwd=tmp,
                 capture_output=True,
                 text=True,
@@ -383,7 +383,7 @@ class CanonicalReplayTests(unittest.IsolatedAsyncioTestCase):
 
 class DatasetAndLifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def test_bundled_custom_grader_runs(self):
-        from reasoning_speedrun.lib.services import Services, ready
+        from qed.lib.services import Services, ready
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -482,7 +482,7 @@ class DatasetAndLifecycleTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(local_dataset(args, {}))
 
     async def test_full_lifecycle_benchmark_flush_and_metadata(self):
-        import reasoning_speedrun.run as module
+        import qed.run as module
 
         args = cli.parse_args(["--questions", "1", "--target-correct", "1"])
 
@@ -500,7 +500,7 @@ class DatasetAndLifecycleTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
             root = Path(tmp)
             services = SimpleNamespace(close=AsyncMock())
-            with patch.dict(os.environ, {"SPEEDRUN_HOME": str(root)}), patch.object(
+            with patch.dict(os.environ, {"QED_HOME": str(root)}), patch.object(
                 module, "verify_core", return_value="manifest"
             ), patch.object(module, "Services", return_value=services), patch.object(
                 module, "ensure_free"

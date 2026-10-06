@@ -1,10 +1,10 @@
 # Usage guide
 
-Everything below uses the installed `reasoning-speedrun` command (equivalently
-`python -m reasoning_speedrun`), which is the only CLI: `reasoning-speedrun` runs an
-attempt, `reasoning-speedrun view` browses saved attempts and
-`reasoning-speedrun fetch-data` downloads the benchmark files. Run it from a working directory of your choice:
-attempts are written to `./attempts/` (override with `SPEEDRUN_HOME`). A GPU,
+Everything below uses the installed `qed` command (equivalently
+`python -m qed`), which is the only CLI: `qed` runs an
+attempt, `qed view` browses saved attempts and
+`qed fetch-data` downloads the benchmark files. Run it from a working directory of your choice:
+attempts are written to `./attempts/` (override with `QED_HOME`). A GPU,
 model weights, a vLLM install and the `grader` extra are prerequisites; see
 [installation](../README.md#install).
 
@@ -58,7 +58,7 @@ Explicit CLI flags override the selected preset. The default
 For example, configure two initial samples with 4K each:
 
 ```bash
-reasoning-speedrun \
+qed \
   --parallelism 30 --rollouts 2 \
   --first-pass-max-tokens 4096 --max-tokens 16384 \
   --seed 20261011
@@ -77,7 +77,7 @@ context. The reference profile uses 95% GPU memory and 64K total context.
 
 Use `--vllm-python`, `--vllm-binary`, and `--grader-python` for other Python/runtime
 locations; `--vllm-port` and `--grader-port` change service ports. Run
-`reasoning-speedrun --help` for all options, or `reasoning-speedrun --version v1.6
+`qed --help` for all options, or `qed --version v1.6
 --help` for the v1.6 policy's flags; it has its own defaults and presets.
 
 ## Policy and timing
@@ -136,13 +136,13 @@ can have `target_reached: false`; inspect both fields when comparing runs.
 
 The built-in AIME 2024/2025/2026 sets are selected with `--benchmark-year`
 (default 2025). They are licensed upstream (CC BY-NC-SA 4.0) and not bundled:
-fetch them once into `$SPEEDRUN_DATA` (default `~/.cache/reasoning_speedrun`).
+fetch them once into `$QED_DATA` (default `~/.cache/qed`).
 The downloader resolves each source at its pinned revision and verifies hashes:
 
 ```bash
-pip install 'reasoning-speedrun[data]'
-reasoning-speedrun fetch-data --year 2025                   # repeat --year for more
-reasoning-speedrun --questions 1 2 3 --target-correct 2 --parallelism 3
+pip install -e '.[data]'
+qed fetch-data --year 2025                   # repeat --year for more
+qed --questions 1 2 3 --target-correct 2 --parallelism 3
 ```
 
 
@@ -168,13 +168,13 @@ dataset:
 ```
 
 ```bash
-reasoning-speedrun \
+qed \
   --grader-config /absolute/path/grader.yaml \
-  --system-prompt-file src/reasoning_speedrun/examples/integer_prompt.txt \
+  --system-prompt-file src/qed/examples/integer_prompt.txt \
   --parallelism 2 --target-correct 2
 ```
 
-A complete two-question example ships in `src/reasoning_speedrun/examples/`.
+A complete two-question example ships in `src/qed/examples/`.
 The solver receives only question indices and statements from the grader's
 gold-free `GET /questions` endpoint; the attempt saves their fingerprint and a
 `questions.json` snapshot. `--reuse-grader` attaches to a fresh dedicated
@@ -191,16 +191,16 @@ extension with a different extractor is the way to support them.
 
 ```bash
 # Reproduce the selected policy with a different declared seed.
-reasoning-speedrun --preset src/reasoning_speedrun/presets/prompt_adherence.json --seed 20261012
+qed --preset src/qed/presets/prompt_adherence.json --seed 20261012
 
 # Original prompt control, with the same scheduling/budgets.
-reasoning-speedrun --preset src/reasoning_speedrun/presets/baseline.json
+qed --preset src/qed/presets/baseline.json
 
 # Enable optional CPU, event-loop, engine and GPU sampling.
-reasoning-speedrun --profile
+qed --profile
 
 # Help for a separately versioned policy.
-reasoning-speedrun --version v1.6 --help
+qed --version v1.6 --help
 ```
 
 The default `--benchmark` preset disables optional profiling and NVML sampling,
@@ -217,12 +217,12 @@ saves each round's state, verification events, and `rollout-NN/` request, respon
 token IDs and telemetry. Telemetry retains start/end timestamps, full generation
 latency, TTFT, end-to-end settlement latency and prefix-cache observations when
 reported by vLLM. Full streams, service logs and grader audits are large; keep them out of Git.
-Use `reasoning-speedrun.lib.metadata ATTEMPT_DIRECTORY` to validate metadata.
+Use `qed.lib.metadata ATTEMPT_DIRECTORY` to validate metadata.
 
 ## Package layout
 
 ```text
-src/reasoning_speedrun/
+src/qed/
   cli.py, config.py       Public entrypoint and validated configuration
   run.py                  Attempt lifecycle and official clock
   scheduler.py, question.py   V1 round scheduling, candidate queue, verification
@@ -240,11 +240,11 @@ src/reasoning_speedrun/
 ```
 
 `manifest.json` (and the v1.6 manifest) pin the source of each policy. Drift is a
-warning and is flagged in the attempt's config; set `SPEEDRUN_STRICT_INTEGRITY=1`
+warning and is flagged in the attempt's config; set `QED_STRICT_INTEGRITY=1`
 to make it fatal when reproducing a pinned measurement. After a reviewed behavior
-change, regenerate with `python -m reasoning_speedrun.tools.pin --write --reason '...'`.
+change, regenerate with `python -m qed.tools.pin --write --reason '...'`.
 Add new policies under `extensions/<version>/` with their own entrypoint, manifest
-and tests, reuse `reasoning_speedrun.lib`, register them in `lib/entrypoints.py`,
+and tests, reuse `qed.lib`, register them in `lib/entrypoints.py`,
 and never change v1 to add one: the canonical default stays whatever
 `CANONICAL` declares. The measured results in the README belong to the original
 experiment commits; offline tests establish the plumbing, not a new GPU timing.

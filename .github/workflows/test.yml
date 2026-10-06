@@ -17,4 +17,4 @@ jobs:
       - run: pip install -e '.[grader,data,analysis,dev]'
       - run: python -m pytest
       - run: node tests/test_results_history.js
-      - run: reasoning-speedrun --help
+      - run: qed --help

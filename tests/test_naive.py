@@ -14,10 +14,10 @@ import io
 
 import httpx
 
-from reasoning_speedrun.extensions.naive.cli import RUNNER_ID, metadata, parse_args, prepare_problems
-from reasoning_speedrun.extensions.naive.policy import final_answer, run_speedrun
-from reasoning_speedrun.lib.metrics import AttemptProfiler
-from reasoning_speedrun.lib.storage import AttemptArtifacts, DisabledGPUSampler
+from qed.extensions.naive.cli import RUNNER_ID, metadata, parse_args, prepare_problems
+from qed.extensions.naive.policy import final_answer, run_speedrun
+from qed.lib.metrics import AttemptProfiler
+from qed.lib.storage import AttemptArtifacts, DisabledGPUSampler
 from tests.helpers import Stream, chunk, fake_provenance
 
 
@@ -134,8 +134,8 @@ class NaivePolicyTests(unittest.IsolatedAsyncioTestCase):
 
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def test_full_lifecycle_records_naive_controls_and_valid_metadata(self):
-        from reasoning_speedrun.lib import policy_runtime as runtime
-        from reasoning_speedrun.lib.metadata import validate_metadata
+        from qed.lib import policy_runtime as runtime
+        from qed.lib.metadata import validate_metadata
 
         args = parse_args(["--questions", "1", "--target-correct", "1", "--samples-per-question", "2"])
         started = []
@@ -162,7 +162,7 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
             root = Path(tmp)
             with (
-                patch.dict(os.environ, {"SPEEDRUN_HOME": str(root)}),
+                patch.dict(os.environ, {"QED_HOME": str(root)}),
                 patch.object(runtime, "Services", return_value=services),
                 patch.object(runtime, "ensure_free"),
                 patch.object(runtime, "git_state", return_value=dict(git_commit=None, git_dirty=None)),
@@ -186,7 +186,7 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
                     prepare_problems=prepare_problems,
                     verify=lambda root: "test-manifest",
                     runner_id=RUNNER_ID,
-                    runner_module="reasoning_speedrun.extensions.naive",
+                    runner_module="qed.extensions.naive",
                     metadata_builder=metadata,
                 )
             summary = json.loads((output / "summary.json").read_text())

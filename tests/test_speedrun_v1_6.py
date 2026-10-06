@@ -13,10 +13,10 @@ from types import SimpleNamespace
 from unittest.mock import patch, AsyncMock
 
 import httpx
-from reasoning_speedrun.extensions.v1_6.cli import parse_args, prepare_problems
-from reasoning_speedrun.extensions.v1_6.policy import run_speedrun
-from reasoning_speedrun.lib.metrics import AttemptProfiler
-from reasoning_speedrun.lib.storage import AttemptArtifacts, DisabledGPUSampler
+from qed.extensions.v1_6.cli import parse_args, prepare_problems
+from qed.extensions.v1_6.policy import run_speedrun
+from qed.lib.metrics import AttemptProfiler
+from qed.lib.storage import AttemptArtifacts, DisabledGPUSampler
 from tests.helpers import Stream, chunk
 
 
@@ -350,9 +350,9 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(s.closed for s in streams))
 
     async def test_lifecycle_timer_starts_after_tokenization_and_warmup(self):
-        from reasoning_speedrun.lib import policy_runtime as runtime
-        from reasoning_speedrun.lib.metadata import validate_metadata
-        from reasoning_speedrun.extensions.v1_6.cli import metadata, RUNNER_ID
+        from qed.lib import policy_runtime as runtime
+        from qed.lib.metadata import validate_metadata
+        from qed.extensions.v1_6.cli import metadata, RUNNER_ID
         from tests.helpers import fake_provenance as dataset_provenance
 
         args = parse_args(["--questions", "1", "--target-correct", "1"])
@@ -389,7 +389,7 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
             root = Path(tmp)
             with (
-                patch.dict(os.environ, {"SPEEDRUN_HOME": str(root)}),
+                patch.dict(os.environ, {"QED_HOME": str(root)}),
                 patch.object(runtime, "Services", return_value=services),
                 patch.object(runtime, "ensure_free"),
                 patch.object(
@@ -422,7 +422,7 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
                     prepare_problems=prepare_problems,
                     verify=lambda root: "test-manifest",
                     runner_id=RUNNER_ID,
-                    runner_module="reasoning_speedrun.extensions.v1_6",
+                    runner_module="qed.extensions.v1_6",
                     metadata_builder=metadata,
                 )
             summary = json.loads((output / "summary.json").read_text())
@@ -470,12 +470,12 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
                 parse_args(argv)
 
     def test_manifest_pins_policy_and_flags_drift(self):
-        from reasoning_speedrun.lib.common import PACKAGE
-        from reasoning_speedrun.integrity import verify_core as verify_base
-        from reasoning_speedrun.extensions.v1_6.integrity import verify_core
+        from qed.lib.common import PACKAGE
+        from qed.integrity import verify_core as verify_base
+        from qed.extensions.v1_6.integrity import verify_core
 
         base = verify_base(PACKAGE)
-        with patch.dict(os.environ, {"SPEEDRUN_STRICT_INTEGRITY": "1"}):
+        with patch.dict(os.environ, {"QED_STRICT_INTEGRITY": "1"}):
             self.assertEqual(len(verify_core(PACKAGE)), 64)
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
@@ -487,7 +487,7 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
                 (folder / "manifest.json").write_text(json.dumps(manifest))
                 with (
                     patch(
-                        "reasoning_speedrun.extensions.v1_6.integrity.verify_base",
+                        "qed.extensions.v1_6.integrity.verify_base",
                         return_value=base,
                     ),
                     self.assertRaisesRegex(RuntimeError, "source drift"),

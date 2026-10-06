@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/devYaoYH/reasoning-speedrun/blob/main/src/reasoning_speedrun/metadata.schema.json",
+  "$schema": "https://github.com/devYaoYH/reasoning-speedrun/blob/main/src/qed/metadata.schema.json",
   "schema_version": 1,
   "attempt_id": "20261004T220514.018752Z",
   "label": "Example: canonical v1, AIME 2025, seed 20261015",
@@ -10,7 +10,7 @@
     "comparison_note": "Bundled example for the viewer; no comparison reference."
   },
   "runner": {
-    "module": "reasoning_speedrun",
+    "module": "qed",
     "version": "runner_core_v1",
     "git_commit": "f30d9dfe0f8bf9c87e3b744e4dc5f282a1606c9c",
     "git_dirty": false

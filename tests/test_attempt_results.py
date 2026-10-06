@@ -4,9 +4,9 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from reasoning_speedrun.lib.metadata import build_metadata, validate_metadata
-from reasoning_speedrun.viewer.results import build_results
-from reasoning_speedrun.viewer.store import AttemptStore
+from qed.lib.metadata import build_metadata, validate_metadata
+from qed.viewer.results import build_results
+from qed.viewer.store import AttemptStore
 from pathlib import Path
 
 EXAMPLES = Path(__file__).resolve().parents[1] / 'examples' / 'attempts'

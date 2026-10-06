@@ -1,4 +1,6 @@
-# reasoning-speedrun
+# qed
+
+*Quod erat demonstrandum:* stop the moment it's proved.
 
 Scheduling policies for streams of reasoning-model requests: **bounded
 parallelism, streaming chunks, and early exit via optimistic intermediate answer
@@ -15,9 +17,9 @@ they save, and concurrency only pays until the GPU is contended.
 
 | Piece | What it answers |
 | --- | --- |
-| Real runs (`reasoning-speedrun`) | How long does a policy actually take to reach N verified answers on your GPU? Per-request timestamps, token IDs, verdict times, GPU/engine telemetry |
+| Real runs (`qed`) | How long does a policy actually take to reach N verified answers on your GPU? Per-request timestamps, token IDs, verdict times, GPU/engine telemetry |
 | Policies (`--version`) | v1 (round barriers), v1.6 (coverage barrier + slot pool), **naive** (complete fan-out, final answers only) |
-| Viewer (`reasoning-speedrun view`) | Trajectories, verdict timelines, GPU samples, matched-control comparisons |
+| Viewer (`qed view`) | Trajectories, verdict timelines, GPU samples, matched-control comparisons |
 
 The reference task is **time to 18 distinct grader-confirmed answers on AIME 2025
 with a 3B model on one A100 80GB** (floor: 18 × 3 s = 54 s of serial grading).
@@ -36,30 +38,30 @@ hardware before quoting numbers.
 
 ## Install
 
-Linux, Python 3.11+, an NVIDIA GPU and [vLLM](https://docs.vllm.ai) in the same
-environment as this package (it launches `vllm serve` itself):
+Not distributed on PyPI (the `qed` name there belongs to something else): clone
+the repository. Linux, Python 3.11+, an NVIDIA GPU, and [vLLM](https://docs.vllm.ai)
+installed in the same environment (qed launches `vllm serve` itself):
 
 ```bash
-pip install 'reasoning-speedrun[grader]'      # runner + bundled grader deps
-pip install 'reasoning-speedrun[data]'        # only for `reasoning-speedrun fetch-data`
-pip install 'reasoning-speedrun[analysis]'    # only for offline plots
+git clone https://github.com/devYaoYH/reasoning-speedrun && cd reasoning-speedrun
+pip install -e '.[grader]'     # runner + bundled grader dependencies
+pip install -e '.[data]'       # add: only for `qed fetch-data`
+pip install -e '.[analysis]'   # add: only for offline plots
 ```
-
-From a checkout use `pip install -e '.[grader,data,analysis,dev]'`.
 
 ## Quickstart
 
 ```bash
 # 1. Benchmark data is licensed upstream (CC BY-NC-SA 4.0), so it is fetched, not bundled.
-reasoning-speedrun fetch-data --year 2025
+qed fetch-data --year 2025
 
 # 2. Weights: put the model under ~/models/<org>/<name>/ (see docs/usage.md). Launch
 #    profiles for the reference models ship with the package.
 nvidia-smi                                    # the runner refuses an occupied GPU
-reasoning-speedrun --seed 20261011            # canonical v1: 30x1, 8K first request, target 18
+qed --seed 20261011            # canonical v1: 30x1, 8K first request, target 18
 
 # 3. Look at the result.
-reasoning-speedrun view                       # http://127.0.0.1:8765, reads ./attempts
+qed view                       # http://127.0.0.1:8765, reads ./attempts
 ```
 
 The runner warms the engine, launches vLLM and a fresh grader, starts the clock,
@@ -67,7 +69,7 @@ and writes `attempts/<timestamp>/` (`summary.json` has `target_reached` and
 `time_to_target_s`). Try the viewer first without a GPU on the bundled example:
 
 ```bash
-reasoning-speedrun view --attempts examples/attempts
+qed view --attempts examples/attempts
 ```
 
 ### Your own questions
@@ -76,9 +78,9 @@ Give the grader a JSONL file of `problem_idx`, `problem`, `answer` and point a
 grader YAML at it; the solver only ever sees indices and statements.
 
 ```bash
-reasoning-speedrun \
-  --grader-config src/reasoning_speedrun/examples/integer_grader.yaml \
-  --system-prompt-file src/reasoning_speedrun/examples/integer_prompt.txt \
+qed \
+  --grader-config src/qed/examples/integer_grader.yaml \
+  --system-prompt-file src/qed/examples/integer_prompt.txt \
   --parallelism 2 --target-correct 2
 ```
 
@@ -95,24 +97,24 @@ answer formats need a new policy extension; see the
 | `naive` | Complete fan-out: every sample of every question at once | Final only: last box of a naturally ended response |
 
 Select with `--version`. New policies plug into one shared pipeline; the
-[policy contract](src/reasoning_speedrun/extensions/README.md#the-policy-contract)
+[policy contract](src/qed/extensions/README.md#the-policy-contract)
 lists what to supply. No GPU measurement of `naive` is recorded here yet.
 
 ## What is in the box
 
 | Piece | Where | What it gives you |
 | --- | --- | --- |
-| Runner | `reasoning_speedrun/` | Streaming candidate extraction, bounded round scheduling, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
+| Runner | `qed/` | Streaming candidate extraction, bounded round scheduling, exact-token-ID continuations with prefix-cache measurement, first-solved timestamps linked to grader queries, benchmark mode that keeps evidence in RAM until timing ends |
 | Policies | `extensions/` | `v1.6` and `naive`; the template for new ones |
-| Grader | `reasoning_speedrun/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
-| Viewer | `reasoning-speedrun view` | Per-attempt trajectories, verdicts and GPU samples; aggregate time-to-target with matched-control comparison |
-| Analysis | `reasoning_speedrun.analysis` | Offline plots from saved telemetry |
+| Grader | `qed/grader/` | Standalone toll-gated, FIFO, gold-free answer oracle (MathArena parser), usable by any solver |
+| Viewer | `qed view` | Per-attempt trajectories, verdicts and GPU samples; aggregate time-to-target with matched-control comparison |
+| Analysis | `qed.analysis` | Offline plots from saved telemetry |
 | Data tools | `fetch-data`, `lib.datasets` | Hash-verified, revision-pinned benchmark download; custom-dataset adapter |
 
 More: [usage guide](docs/usage.md) (flags, policy and timing semantics, profiling),
-[v1.6 policy](src/reasoning_speedrun/extensions/v1_6/README.md),
-[grader](src/reasoning_speedrun/grader/README.md),
-[benchmark provenance](src/reasoning_speedrun/data/README.md),
+[v1.6 policy](src/qed/extensions/v1_6/README.md),
+[grader](src/qed/grader/README.md),
+[benchmark provenance](src/qed/data/README.md),
 [contributing](CONTRIBUTING.md).
 
 ## Development
